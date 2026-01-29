@@ -1,6 +1,9 @@
- // CONFIG: your Flow URL and reCAPTCHA site key (inserted)
+// index.js
+document.addEventListener('DOMContentLoaded', function () {
+console.log('index.js loaded');
+
+// CONFIG: your Flow URL (already inserted)
 const FLOW_URL = 'https://default0ae51e1907c84e4bbb6d648ee58410.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1f6f13bc2d7a4b508a04bb8b03bc3342/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oL23bmTH8ieQn3nR8OyzhCwOqv-rbWuUt1P8OBVnDWo';
-const SITE_KEY = '6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3';
 
 // Relief pressure validation UI
 const reliefInput = document.getElementById('reliefPressure');
@@ -28,7 +31,7 @@ form.addEventListener('submit', function (e) {
 e.preventDefault();
 console.log('submit handler fired');
 
-// Collect form values
+// Collect form values (minimal set — this matches your form ids)
 const payload = {
   customer: document.getElementById('customer')?.value || '',
   date: document.getElementById('date')?.value || '',
@@ -65,11 +68,11 @@ const payload = {
   dynamicBrakeTorque: document.getElementById('dynamicBrakeTorque')?.value || ''
 };
 
-// helper to POST payload
+// POST helper
 function doPost(finalPayload) {
-  console.log('Attempting fetch to FLOW URL with payload (truncated):', JSON.stringify(finalPayload).slice(0,300));
+  console.log('Attempting POST to FLOW URL (truncated payload):', JSON.stringify(finalPayload).slice(0,300));
   if (!FLOW_URL || FLOW_URL.includes('REPLACE_ME')) {
-    console.error('FLOW_URL not configured.');
+    console.error('FLOW_URL not configured in index.js');
     alert('FLOW_URL not configured. See console.');
     return;
   }
@@ -100,26 +103,8 @@ function doPost(finalPayload) {
   });
 }
 
-// If grecaptcha exists and SITE_KEY set, request token first
-if (window.grecaptcha && typeof grecaptcha.execute === 'function' && SITE_KEY && SITE_KEY !== 'SITE_KEY_REPLACE_ME') {
-  console.log('grecaptcha detected, requesting token');
-  grecaptcha.ready(function () {
-    grecaptcha.execute(SITE_KEY, { action: 'submit' })
-      .then(function (token) {
-        console.log('recaptcha token received (truncated):', token.slice(0,20));
-        payload.recaptchaToken = token;
-        doPost(payload);
-      })
-      .catch(function (err) {
-        console.error('grecaptcha.execute error:', err);
-        // fallback: still attempt POST for debugging
-        doPost(payload);
-      });
-  });
-} else {
-  console.warn('grecaptcha not available or SITE_KEY not configured — sending without token');
-  doPost(payload);
-}
+// Directly POST (reCAPTCHA skipped for now so we can confirm the POST attempt)
+doPost(payload);
 
 
 });
