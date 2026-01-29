@@ -1,244 +1,258 @@
 <!DOCTYPE html>
-<html lang="en"> <head> <meta charset="UTF-8" /> <title>Motor Application Form</title> <link rel="stylesheet" href="./style.css" /> </head> <body> <div class="header"> <div class="logo-container"> <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Logo_of_Bosch_Rexroth_AG.svg/1280px-Logo_of_Bosch_Rexroth_AG.svg.png" alt="Logo"> </div> <h1>Application Information Sheet</h1> </div> <form id="motorForm"> <!-- A. Application & Customer Info --> <fieldset> <legend>Application & Customer Information</legend>
+<html lang="en"> <head> <meta charset="utf-8" /> <title>Motor Application Form</title> <style> :root{ --label-width: 38%; --input-width: 58%; --gap: 12px; --accent: #0b4a63; --muted: #666; --bg: #fff; } html,body{height:100%;margin:0;font-family: "Segoe UI", Roboto, Arial, sans-serif;background:var(--bg);color:#0b2f3f;} .container{max-width:1100px;margin:24px auto;padding:18px;} .header-top{display:flex;align-items:center;gap:20px} .logo{width:160px;height:auto;object-fit:contain} .title-wrap{flex:1;text-align:left} h1.app-title{margin:6px 0 2px;font-size:28px;color:var(--accent);font-weight:700} p.subtitle{margin:0;color:var(--muted);font-size:16px} form{margin-top:18px;border-radius:6px;padding:14px} fieldset{border:1px solid #e1e1e1;padding:12px 14px;margin-bottom:14px;background:#fafafa} legend{font-weight:700;color:#333;padding:0 6px} .row{display:grid;grid-template-columns: var(--label-width) var(--input-width);gap:var(--gap);align-items:center;margin:8px 0} label{font-size:14px;color:#123;font-weight:600} input[type="text"], input[type="email"], input[type="date"], input[type="number"], textarea{ width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #c9d8df;border-radius:4px;font-size:14px; outline:none; } input:invalid{border-color:#d9534f} textarea{min-height:64px;resize:vertical} .row-small{display:flex;gap:10px;align-items:center} .actions{display:flex;justify-content:center;margin:18px 0} button[type="submit"]{background:#0b6b8a;color:white;padding:10px 18px;border:none;border-radius:6px;font-size:16px;cursor:pointer} button[type="submit"]:disabled{opacity:0.6;cursor:not-allowed} .popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;padding:20px;border-radius:6px;box-shadow:0 6px 30px rgba(0,0,0,0.15);min-width:300px} .popup h2{margin:0 0 8px;font-size:18px} .popup p{margin:0 0 12px} .popup button{background:#0b6b8a;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer} @media (max-width:800px){ .row{grid-template-columns: 1fr; } .logo{width:120px} .container{padding:12px} } </style> </head> <body> <div class="container"> <header class="header-top"> <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Logo_of_Bosch_Rexroth_AG.svg/1280px-Logo_of_Bosch_Rexroth_AG.svg.png" alt="Logo"> <div class="title-wrap"> <h1 class="app-title">Application Information Sheet</h1> <p class="subtitle">Motor application — please complete all required fields</p> </div> </header>
 
-  <div class="row">
-    <label>Application type</label>
-    <input type="text" id="applicationType" required>
+<form id="motorForm" novalidate>
+  <!-- A. Application & Customer Info -->
+  <fieldset>
+    <legend>Application & Customer Information</legend>
+
+    <div class="row">
+      <label for="applicationType">Application type</label>
+      <input id="applicationType" name="applicationType" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="customer">Customer (company)</label>
+      <input id="customer" name="customer" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="date">Date of submission</label>
+      <input id="date" name="date" type="date" required>
+    </div>
+
+    <div class="row">
+      <label for="machineType">Machine type</label>
+      <input id="machineType" name="machineType" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="machineName">Machine name</label>
+      <input id="machineName" name="machineName" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="customerContact">Customer contact (name & email)</label>
+      <input id="customerContact" name="customerContact" type="text" placeholder="Name, email" required>
+    </div>
+
+    <div class="row">
+      <label for="rexrothContact">Rexroth contact</label>
+      <input id="rexrothContact" name="rexrothContact" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="provisionalMotorSelection">Provisional motor selection</label>
+      <input id="provisionalMotorSelection" name="provisionalMotorSelection" type="text" placeholder="Motor type/details" required>
+    </div>
+
+    <div class="row">
+      <label for="annualMotorQuantity">Annual motor quantity</label>
+      <input id="annualMotorQuantity" name="annualMotorQuantity" type="number" min="1" required>
+    </div>
+
+    <div class="row">
+      <label for="countryStandards">Country specific standards & regulations</label>
+      <input id="countryStandards" name="countryStandards" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="productionStartDate">Estimated production start date</label>
+      <input id="productionStartDate" name="productionStartDate" type="date" required>
+    </div>
+
+    <div class="row">
+      <label for="specialEnvironmentalConditions">Any special environmental considerations?</label>
+      <input id="specialEnvironmentalConditions" name="specialEnvironmentalConditions" type="text" required>
+    </div>
+  </fieldset>
+
+  <!-- B. Machine details & motor features -->
+  <fieldset>
+    <legend>Machine Details & Motor Features</legend>
+
+    <div class="row">
+      <label for="annualUsage">Expected annual usage</label>
+      <input id="annualUsage" name="annualUsage" type="number" required>
+    </div>
+
+    <div class="row">
+      <label for="hydraulicSystemType">Hydraulic system type</label>
+      <input id="hydraulicSystemType" name="hydraulicSystemType" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="machineWeightMax">Total machine weight (max)</label>
+      <input id="machineWeightMax" name="machineWeightMax" type="number" required>
+    </div>
+
+    <div class="row">
+      <label for="machineWeightMin">Total machine weight (min)</label>
+      <input id="machineWeightMin" name="machineWeightMin" type="number" required>
+    </div>
+
+    <div class="row">
+      <label for="reliefPressure">Relief Pressure (bar)</label>
+      <input id="reliefPressure" name="reliefPressure" type="number" min="0" required>
+      <span class="error" id="reliefError"></span>
+    </div>
+
+    <div class="row">
+      <label for="chargePressure">Charge Pressure (bar)</label>
+      <input id="chargePressure" name="chargePressure" type="number" required>
+    </div>
+
+    <div class="row">
+      <label for="drainPressure">Case/Drain pressure (bar)</label>
+      <input id="drainPressure" name="drainPressure" type="number" required>
+    </div>
+
+    <div class="row">
+      <label for="tractiveEffort">Maximum tractive effort required</label>
+      <input id="tractiveEffort" name="tractiveEffort" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="maxSpeedFull">Max. Speed (Full displacement)</label>
+      <input id="maxSpeedFull" name="maxSpeedFull" type="number" required>
+    </div>
+
+    <div class="row">
+      <label for="maxSpeedReduced">Max. Speed (Reduced displacement)</label>
+      <input id="maxSpeedReduced" name="maxSpeedReduced" type="number" required>
+    </div>
+
+    <div class="row">
+      <label for="flushingRequired">Is flushing required?</label>
+      <input id="flushingRequired" name="flushingRequired" type="text" placeholder="Yes / No / Details" required>
+    </div>
+
+    <div class="row">
+      <label for="flushingRate">Flushing rate / info</label>
+      <input id="flushingRate" name="flushingRate" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="fluidManufacturer">Fluid manufacturer and name</label>
+      <input id="fluidManufacturer" name="fluidManufacturer" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="fluidSpecification">Fluid specification / viscosity grade</label>
+      <input id="fluidSpecification" name="fluidSpecification" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="fluidTemperature">Fluid max temperature (°C)</label>
+      <input id="fluidTemperature" name="fluidTemperature" type="number" required>
+    </div>
+
+    <div class="row">
+      <label for="paintRequired">Paint required?</label>
+      <input id="paintRequired" name="paintRequired" type="text" placeholder="Yes / No / Details" required>
+    </div>
+
+    <div class="row">
+      <label for="speedSensorRequired">Is a speed sensor required?</label>
+      <input id="speedSensorRequired" name="speedSensorRequired" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="sensorPowerSupply">Speed sensor power / details</label>
+      <input id="sensorPowerSupply" name="sensorPowerSupply" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="parkingBrakeRequired">Is a parking brake required?</label>
+      <input id="parkingBrakeRequired" name="parkingBrakeRequired" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="wheelRollerDiameter">Wheel / Roller diameter</label>
+      <input id="wheelRollerDiameter" name="wheelRollerDiameter" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="brakeRequirements">Brake requirements</label>
+      <input id="brakeRequirements" name="brakeRequirements" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="staticBrakeTorque">Static brake torque required per motor</label>
+      <input id="staticBrakeTorque" name="staticBrakeTorque" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="dynamicBrakeTorque">Dynamic brake torque required per motor</label>
+      <input id="dynamicBrakeTorque" name="dynamicBrakeTorque" type="text" required>
+    </div>
+  </fieldset>
+
+  <!-- C. Motor Installation Details (NEW SECTION) -->
+  <fieldset id="motorInstallationDetails">
+    <legend>Motor Installation Details</legend>
+
+    <div class="row">
+      <label for="numberOfMotorsPerMachine">Number of motors per machine</label>
+      <input id="numberOfMotorsPerMachine" name="numberOfMotorsPerMachine" type="number" min="1" required>
+    </div>
+
+    <div class="row">
+      <label for="vehicleUsesFreewheel">Will the vehicle use freewheel?</label>
+      <input id="vehicleUsesFreewheel" name="vehicleUsesFreewheel" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="wheelLoadOffset">Wheel load offset</label>
+      <input id="wheelLoadOffset" name="wheelLoadOffset" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="wheelStudsRequired">Are wheel studs required?</label>
+      <input id="wheelStudsRequired" name="wheelStudsRequired" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="desiredWheelInstallationPCD">Desired wheel installation PCD</label>
+      <input id="desiredWheelInstallationPCD" name="desiredWheelInstallationPCD" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="desiredWheelInstallationHolePattern">Desired wheel installation hole/stud pattern</label>
+      <input id="desiredWheelInstallationHolePattern" name="desiredWheelInstallationHolePattern" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="desiredMotorInstallationPCD">Desired motor installation PCD</label>
+      <input id="desiredMotorInstallationPCD" name="desiredMotorInstallationPCD" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="desiredMotorInstallationHolePattern">Desired motor installation hole pattern</label>
+      <input id="desiredMotorInstallationHolePattern" name="desiredMotorInstallationHolePattern" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="desiredPortType">Desired port type</label>
+      <input id="desiredPortType" name="desiredPortType" type="text" required>
+    </div>
+
+    <div class="row">
+      <label for="machineDutyCycle">Machine duty cycle</label>
+      <input id="machineDutyCycle" name="machineDutyCycle" type="text" required>
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <button type="submit">Submit Application</button>
   </div>
+</form>
 
-  <div class="row">
-    <label>Customer (company)</label>
-    <input type="text" id="customer" required>
-  </div>
+<!-- reCAPTCHA v3 site key (public) -->
+<script src="https://www.google.com/recaptcha/api.js?render=6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3"></script>
 
-  <div class="row">
-    <label>Date of submission</label>
-    <input type="date" id="date" required>
-  </div>
-
-  <div class="row">
-    <label>Machine type</label>
-    <input type="text" id="machineType" required>
-  </div>
-
-  <div class="row">
-    <label>Machine name</label>
-    <input type="text" id="machineName" required>
-  </div>
-
-  <div class="row">
-    <label>Customer contact (name & email)</label>
-    <input type="text" id="customerContact" required placeholder="Name and email">
-  </div>
-
-  <div class="row">
-    <label>Rexroth contact</label>
-    <input type="text" id="rexrothContact" required>
-  </div>
-
-  <div class="row">
-    <label>Provisional motor selection</label>
-    <input type="text" id="provisionalMotorSelection" required placeholder="Motor type/details">
-  </div>
-
-  <div class="row">
-    <label>Annual motor quantity</label>
-    <input type="number" id="annualMotorQuantity" min="1" required>
-  </div>
-
-  <div class="row">
-    <label>Country specific standards and regulations</label>
-    <input type="text" id="countryStandards" required>
-  </div>
-
-  <div class="row">
-    <label>Estimated production start date</label>
-    <input type="date" id="productionStartDate" required>
-  </div>
-
-  <div class="row">
-    <label>Any special environmental considerations?</label>
-    <input type="text" id="specialEnvironmentalConditions" required>
-  </div>
-</fieldset>
-
-<!-- B. Machine details & motor features -->
-<fieldset>
-  <legend>Machine Details & Motor Features</legend>
-
-  <div class="row">
-    <label>Expected annual usage</label>
-    <input type="number" id="annualUsage" required>
-  </div>
-
-  <div class="row">
-    <label>Hydraulic System Type</label>
-    <input type="text" id="hydraulicSystemType" required>
-  </div>
-
-  <div class="row">
-    <label>Total Machine weight (max)</label>
-    <input type="number" id="machineWeightMax" required>
-  </div>
-
-  <div class="row">
-    <label>Total Machine weight (min)</label>
-    <input type="number" id="machineWeightMin" required>
-  </div>
-
-  <div class="row">
-    <label>Relief Pressure (bar)</label>
-    <input type="number" id="reliefPressure" min="0" required>
-    <span class="error" id="reliefError"></span>
-  </div>
-
-  <div class="row">
-    <label>Charge Pressure (bar)</label>
-    <input type="number" id="chargePressure" required>
-  </div>
-
-  <div class="row">
-    <label>Case/Drain pressure (bar)</label>
-    <input type="number" id="drainPressure" required>
-  </div>
-
-  <div class="row">
-    <label>Maximum tractive effort required</label>
-    <input type="text" id="tractiveEffort" required>
-  </div>
-
-  <div class="row">
-    <label>Max. Speed (Full displacement)</label>
-    <input type="number" id="maxSpeedFull" required>
-  </div>
-
-  <div class="row">
-    <label>Max. Speed (Reduced displacement)</label>
-    <input type="number" id="maxSpeedReduced" required>
-  </div>
-
-  <div class="row">
-    <label>Is flushing required?</label>
-    <input type="text" id="flushingRequired" required placeholder="Yes / No / Details">
-  </div>
-
-  <div class="row">
-    <label>Flushing rate / info</label>
-    <input type="text" id="flushingRate" required>
-  </div>
-
-  <div class="row">
-    <label>Fluid manufacturer and name</label>
-    <input type="text" id="fluidManufacturer" required>
-  </div>
-
-  <div class="row">
-    <label>Fluid specification / viscosity grade</label>
-    <input type="text" id="fluidSpecification" required>
-  </div>
-
-  <div class="row">
-    <label>Fluid max temperature</label>
-    <input type="number" id="fluidTemperature" required>
-  </div>
-
-  <div class="row">
-    <label>Paint required?</label>
-    <input type="text" id="paintRequired" required placeholder="Yes / No / Details">
-  </div>
-
-  <div class="row">
-    <label>Is a speed sensor required?</label>
-    <input type="text" id="speedSensorRequired" required placeholder="Yes / No / Details">
-  </div>
-
-  <div class="row">
-    <label>Speed sensor power/details</label>
-    <input type="text" id="sensorPowerSupply" required>
-  </div>
-
-  <div class="row">
-    <label>Is a parking brake required?</label>
-    <input type="text" id="parkingBrakeRequired" required placeholder="Yes / No / Details">
-  </div>
-
-  <div class="row">
-    <label>Wheel / Roller diameter</label>
-    <input type="text" id="wheelRollerDiameter" required>
-  </div>
-
-  <div class="row">
-    <label>Brake requirements</label>
-    <input type="text" id="brakeRequirements" required>
-  </div>
-
-  <div class="row">
-    <label>Static brake torque required per motor</label>
-    <input type="text" id="staticBrakeTorque" required>
-  </div>
-
-  <div class="row">
-    <label>Dynamic brake torque required per motor</label>
-    <input type="text" id="dynamicBrakeTorque" required>
-  </div>
-</fieldset>
-
-<!-- C. Motor Installation Details (NEW SECTION) -->
-<fieldset id="motorInstallationDetails">
-  <legend>Motor Installation Details</legend>
-
-  <div class="row">
-    <label>Number of motors per machine</label>
-    <input type="number" id="numberOfMotorsPerMachine" min="1" required>
-  </div>
-
-  <div class="row">
-    <label>Will the vehicle use freewheel?</label>
-    <input type="text" id="vehicleUsesFreewheel" required placeholder="Yes / No / Details">
-  </div>
-
-  <div class="row">
-    <label>Wheel load offset</label>
-    <input type="text" id="wheelLoadOffset" required>
-  </div>
-
-  <div class="row">
-    <label>Are wheel studs required?</label>
-    <input type="text" id="wheelStudsRequired" required placeholder="Yes / No / Details">
-  </div>
-
-  <div class="row">
-    <label>Desired wheel installation PCD</label>
-    <input type="text" id="desiredWheelInstallationPCD" required>
-  </div>
-
-  <div class="row">
-    <label>Desired wheel installation hole/stud pattern</label>
-    <input type="text" id="desiredWheelInstallationHolePattern" required>
-  </div>
-
-  <div class="row">
-    <label>Desired motor installation PCD</label>
-    <input type="text" id="desiredMotorInstallationPCD" required>
-  </div>
-
-  <div class="row">
-    <label>Desired motor installation hole pattern</label>
-    <input type="text" id="desiredMotorInstallationHolePattern" required>
-  </div>
-
-  <div class="row">
-    <label>Desired port type</label>
-    <input type="text" id="desiredPortType" required>
-  </div>
-
-  <div class="row">
-    <label>Machine duty cycle</label>
-    <input type="text" id="machineDutyCycle" required>
-  </div>
-</fieldset>
-
-<button type="submit">Submit Application</button>
+<!-- client JS -->
+<script src="./index.js"></script>
 
 
-</form> <!-- reCAPTCHA v3 site key (public) --> <script src="https://www.google.com/recaptcha/api.js?render=6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3"></script> <!-- load client JS --> <script src="./index.js"></script> </body> </html> 
+</div> </body> </html> 
