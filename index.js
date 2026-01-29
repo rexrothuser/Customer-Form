@@ -2,23 +2,22 @@
 document.addEventListener('DOMContentLoaded', function () {
 console.log('index.js loaded');
 
-// CONFIG (public site key and flow URL)
 const SITE_KEY = '6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3';
 const FLOW_URL = 'https://default0ae51e1907c84e4bbb6d648ee58410.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1f6f13bc2d7a4b508a04bb8b03bc3342/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oL23bmTH8ieQn3nR8OyzhCwOqv-rbWuUt1P8OBVnDWo';
 
-// Relief pressure validation UI
+// Relief pressure inline validation
 const reliefInput = document.getElementById('reliefPressure');
 const reliefError = document.getElementById('reliefError');
 if (reliefInput && reliefError) {
 reliefInput.addEventListener('input', () => {
 const value = Number(reliefInput.value);
-if (value && value < 50) reliefError.textContent = 'Relief pressure too low. Check hydraulic system type.';
-else if (value && value > 450) reliefError.textContent = 'Relief pressure exceeds motor rating.';
+if (value && value < 50) reliefError.textContent = 'Relief pressure too low.';
+else if (value && value > 450) reliefError.textContent = 'Relief pressure exceeds rating.';
 else reliefError.textContent = '';
 });
 }
 
-// Obtain reCAPTCHA token with timeout
+// obtain token with timeout
 function obtainRecaptchaToken(action = 'submit', timeoutMs = 10000) {
 return new Promise((resolve, reject) => {
 if (!window.grecaptcha || typeof grecaptcha.execute !== 'function') {
@@ -60,9 +59,9 @@ reject(new Error('recaptcha_timeout'));
 
 }
 
-// POST to flow and handle response, returns fetch Promise
+// doPost: posts payload, tolerates empty response body as success
 function doPost(finalPayload) {
-console.log('Attempting POST to FLOW URL (truncated payload):', JSON.stringify(finalPayload).slice(0,300));
+console.log('Attempting POST to FLOW URL (payload):', JSON.stringify(finalPayload).slice(0,1000));
 if (!FLOW_URL || FLOW_URL.includes('REPLACE_ME')) {
 console.error('FLOW_URL not configured.');
 alert('FLOW_URL not configured. See console.');
@@ -77,8 +76,8 @@ return fetch(FLOW_URL, {
 .then(async response => {
   const text = await response.text();
   let json = null;
-  try { json = text ? JSON.parse(text) : null; } catch (e) { console.warn('Failed to parse flow response as JSON:', e); }
-  console.log('Fetch completed, status:', response.status, 'text:', text, 'json:', json);
+  try { json = text ? JSON.parse(text) : null; } catch (e) { console.warn('Flow response not JSON:', e); }
+  console.log('Fetch completed, status:', response.status, 'bodyText:', text, 'json:', json);
 
   if (!response.ok) {
     const message = (json && json.message) ? json.message : `Server error ${response.status}`;
@@ -86,7 +85,7 @@ return fetch(FLOW_URL, {
     throw new Error(message || 'flow_response_not_ok');
   }
 
-  // treat empty response as success; otherwise respect JSON.success
+  // if server returned no body, treat as success; if JSON returned, respect success flag
   const ok = (json === null) ? true : (('success' in json) ? json.success : true);
   if (!ok) {
     const message = (json && json.message) ? json.message : 'Verification failed';
@@ -94,7 +93,7 @@ return fetch(FLOW_URL, {
     return response;
   }
 
-  // show success popup
+  // success popup
   const popup = document.createElement('div');
   popup.className = 'popup show';
   popup.innerHTML = `<h2>Form Submitted Successfully</h2>
@@ -114,16 +113,13 @@ return fetch(FLOW_URL, {
 }
 
 const form = document.getElementById('motorForm');
-if (!form) {
-console.error('Form element not found: id="motorForm"');
-return;
-}
+if (!form) return;
 
 form.addEventListener('submit', function (e) {
 e.preventDefault();
 console.log('submit handler fired');
 
-// Build payload with every required field (IDs must match the HTML)
+// gather payload (IDs match inputs above)
 const payload = {
   applicationType: document.getElementById('applicationType')?.value || '',
   customer: document.getElementById('customer')?.value || '',
@@ -138,7 +134,6 @@ const payload = {
   estimatedProductionStartDate: document.getElementById('productionStartDate')?.value || '',
   specialEnvironmentalConditions: document.getElementById('specialEnvironmentalConditions')?.value || '',
 
-  // Machine details
   expectedAnnualUsage: document.getElementById('annualUsage')?.value || '',
   hydraulicSystemType: document.getElementById('hydraulicSystemType')?.value || '',
   maximumMachineWeight: document.getElementById('machineWeightMax')?.value || '',
@@ -160,7 +155,6 @@ const payload = {
   parkingBrakeRequired: document.getElementById('parkingBrakeRequired')?.value || '',
   wheelRollerDiameter: document.getElementById('wheelRollerDiameter')?.value || '',
 
-  // Motor installation details
   numberOfMotorsPerMachine: document.getElementById('numberOfMotorsPerMachine')?.value || '',
   vehicleUsesFreewheel: document.getElementById('vehicleUsesFreewheel')?.value || '',
   wheelLoadOffset: document.getElementById('wheelLoadOffset')?.value || '',
@@ -172,31 +166,25 @@ const payload = {
   desiredPortType: document.getElementById('desiredPortType')?.value || '',
   machineDutyCycle: document.getElementById('machineDutyCycle')?.value || '',
 
-  // Brakes / torques
   brakeRequirements: document.getElementById('brakeRequirements')?.value || '',
   staticBrakeTorqueReq: document.getElementById('staticBrakeTorque')?.value || '',
   dynamicBrakeTorqueReq: document.getElementById('dynamicBrakeTorque')?.value || ''
-  // recaptchaToken will be attached after obtaining token
 };
 
-// disable submit while processing
 const submitBtn = form.querySelector('button[type="submit"]');
 if (submitBtn) submitBtn.disabled = true;
 
-// ensure grecaptcha available
 if (!window.grecaptcha || typeof grecaptcha.execute !== 'function') {
-  console.error('reCAPTCHA not available. Submission aborted.');
-  alert('reCAPTCHA not available — disable tracker blocking or test in another browser.');
+  alert('reCAPTCHA not available; disable tracker protection or try another browser.');
   if (submitBtn) submitBtn.disabled = false;
   return;
 }
 
-console.log('grecaptcha detected; requesting token');
 obtainRecaptchaToken('submit', 10000)
   .then(token => {
     console.log('recaptcha token (full):', token);
     payload.recaptchaToken = token;
-    console.log('payload before fetch:', JSON.stringify(payload).slice(0,1000));
+    console.log('payload before fetch (truncated):', JSON.stringify(payload).slice(0,1200));
     return doPost(payload);
   })
   .catch(err => {
