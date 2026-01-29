@@ -1,8 +1,4 @@
-// index.js
-document.addEventListener('DOMContentLoaded', function () {
-console.log('index.js loaded');
-
-// CONFIG: your Flow URL and reCAPTCHA site key (already inserted)
+ // CONFIG: your Flow URL and reCAPTCHA site key (inserted)
 const FLOW_URL = 'https://default0ae51e1907c84e4bbb6d648ee58410.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1f6f13bc2d7a4b508a04bb8b03bc3342/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oL23bmTH8ieQn3nR8OyzhCwOqv-rbWuUt1P8OBVnDWo';
 const SITE_KEY = '6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3';
 
@@ -73,7 +69,7 @@ const payload = {
 function doPost(finalPayload) {
   console.log('Attempting fetch to FLOW URL with payload (truncated):', JSON.stringify(finalPayload).slice(0,300));
   if (!FLOW_URL || FLOW_URL.includes('REPLACE_ME')) {
-    console.error('FLOW_URL not configured. Replace placeholder in index.js.');
+    console.error('FLOW_URL not configured.');
     alert('FLOW_URL not configured. See console.');
     return;
   }
@@ -85,7 +81,9 @@ function doPost(finalPayload) {
   })
   .then(response => {
     console.log('Fetch completed, status:', response.status);
-    return response.text().then(text => console.log('Fetch response body (truncated):', text.slice(0,500)));
+    return response.text().then(text => {
+      console.log('Fetch response body (truncated):', (text || '').slice(0,500));
+    });
   })
   .then(() => {
     const popup = document.createElement('div');
@@ -114,7 +112,7 @@ if (window.grecaptcha && typeof grecaptcha.execute === 'function' && SITE_KEY &&
       })
       .catch(function (err) {
         console.error('grecaptcha.execute error:', err);
-        // still attempt POST for debugging
+        // fallback: still attempt POST for debugging
         doPost(payload);
       });
   });
