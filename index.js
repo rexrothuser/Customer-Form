@@ -2,11 +2,11 @@
 document.addEventListener('DOMContentLoaded', function () {
 console.log('index.js loaded');
 
-// CONFIG: FLOW URL and reCAPTCHA site key (already inserted)
-const FLOW_URL = 'https://default0ae51e1907c84e4bbb6d648ee58410.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1f6f13bc2d7a4b508a04bb8b03bc3342/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oL23bmTH8ieQn3nR8OyzhCwOqv-rbWuUt1P8OBVnDWo';
+// CONFIG (public site key and flow URL)
 const SITE_KEY = '6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3';
+const FLOW_URL = 'https://default0ae51e1907c84e4bbb6d648ee58410.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1f6f13bc2d7a4b508a04bb8b03bc3342/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oL23bmTH8ieQn3nR8OyzhCwOqv-rbWuUt1P8OBVnDWo';
 
-// Relief pressure validation
+// Relief pressure validation UI
 const reliefInput = document.getElementById('reliefPressure');
 const reliefError = document.getElementById('reliefError');
 if (reliefInput && reliefError) {
@@ -18,19 +18,18 @@ else reliefError.textContent = '';
 });
 }
 
-// Helper: obtain a reCAPTCHA token with timeout and error handling
+// Obtain reCAPTCHA token with timeout
 function obtainRecaptchaToken(action = 'submit', timeoutMs = 10000) {
 return new Promise((resolve, reject) => {
 if (!window.grecaptcha || typeof grecaptcha.execute !== 'function') {
 return reject(new Error('grecaptcha_not_available'));
 }
-
-  let finished = false;
-  const timer = setTimeout(() => {
-    if (finished) return;
-    finished = true;
-    reject(new Error('recaptcha_timeout'));
-  }, timeoutMs);
+let finished = false;
+const timer = setTimeout(() => {
+if (finished) return;
+finished = true;
+reject(new Error('recaptcha_timeout'));
+}, timeoutMs);
 
   try {
     grecaptcha.ready(() => {
@@ -61,7 +60,7 @@ return reject(new Error('grecaptcha_not_available'));
 
 }
 
-// helper: POST payload to flow and handle response. RETURNS the fetch promise.
+// POST to flow and handle response, returns fetch Promise
 function doPost(finalPayload) {
 console.log('Attempting POST to FLOW URL (truncated payload):', JSON.stringify(finalPayload).slice(0,300));
 if (!FLOW_URL || FLOW_URL.includes('REPLACE_ME')) {
@@ -79,28 +78,23 @@ return fetch(FLOW_URL, {
   const text = await response.text();
   let json = null;
   try { json = text ? JSON.parse(text) : null; } catch (e) { console.warn('Failed to parse flow response as JSON:', e); }
-
   console.log('Fetch completed, status:', response.status, 'text:', text, 'json:', json);
 
-  // If server returned an HTTP error, show it
   if (!response.ok) {
     const message = (json && json.message) ? json.message : `Server error ${response.status}`;
     alert('Submission failed: ' + message);
     throw new Error(message || 'flow_response_not_ok');
   }
 
-  // Treat an empty response body as success (this avoids false client-side rejection)
-  // If the server returns JSON with a 'success' boolean, respect it.
+  // treat empty response as success; otherwise respect JSON.success
   const ok = (json === null) ? true : (('success' in json) ? json.success : true);
-
   if (!ok) {
     const message = (json && json.message) ? json.message : 'Verification failed';
     alert('Submission rejected: ' + message);
-    // return resolved response so caller knows request finished
     return response;
   }
 
-  // success -> show popup
+  // show success popup
   const popup = document.createElement('div');
   popup.className = 'popup show';
   popup.innerHTML = `<h2>Form Submitted Successfully</h2>
@@ -108,12 +102,10 @@ return fetch(FLOW_URL, {
     <button id="closePopup">Close</button>`;
   document.body.appendChild(popup);
   document.getElementById('closePopup').addEventListener('click', () => popup.remove());
-
   return response;
 })
 .catch(err => {
   console.error('Fetch/flow error:', err);
-  // show a friendly message (avoid double-throwing user-visible error)
   alert('Submission failed — see console for details.');
   throw err;
 });
@@ -131,63 +123,81 @@ form.addEventListener('submit', function (e) {
 e.preventDefault();
 console.log('submit handler fired');
 
-// Collect all form values
+// Build payload with every required field (IDs must match the HTML)
 const payload = {
+  applicationType: document.getElementById('applicationType')?.value || '',
   customer: document.getElementById('customer')?.value || '',
   date: document.getElementById('date')?.value || '',
   machineType: document.getElementById('machineType')?.value || '',
-  projectNumber: document.getElementById('projectNumber')?.value || '',
+  machineName: document.getElementById('machineName')?.value || '',
   customerContact: document.getElementById('customerContact')?.value || '',
   rexrothContact: document.getElementById('rexrothContact')?.value || '',
-  motorSelection: document.getElementById('motorSelection')?.value || '',
-  annualQuantity: document.getElementById('annualQuantity')?.value || '',
-  standards: document.getElementById('standards')?.value || '',
-  productionStartDate: document.getElementById('productionStartDate')?.value || '',
-  environmentalConsiderations: document.getElementById('environmentalConsiderations')?.value || '',
-  email: document.getElementById('email')?.value || '',
-  annualUsage: document.getElementById('annualUsage')?.value || '',
-  flushingRequired: document.getElementById('flushingRequired')?.value || '',
+  provisionalMotorSelection: document.getElementById('provisionalMotorSelection')?.value || '',
+  annualMotorQuantity: document.getElementById('annualMotorQuantity')?.value || '',
+  countryStandards: document.getElementById('countryStandards')?.value || '',
+  estimatedProductionStartDate: document.getElementById('productionStartDate')?.value || '',
+  specialEnvironmentalConditions: document.getElementById('specialEnvironmentalConditions')?.value || '',
+
+  // Machine details
+  expectedAnnualUsage: document.getElementById('annualUsage')?.value || '',
   hydraulicSystemType: document.getElementById('hydraulicSystemType')?.value || '',
-  flushingRate: document.getElementById('flushingRate')?.value || '',
-  machineWeightMin: document.getElementById('machineWeightMin')?.value || '',
-  fluidManufacturer: document.getElementById('fluidManufacturer')?.value || '',
-  machineWeightMax: document.getElementById('machineWeightMax')?.value || '',
-  fluidSpecification: document.getElementById('fluidSpecification')?.value || '',
+  maximumMachineWeight: document.getElementById('machineWeightMax')?.value || '',
+  minimumMachineWeight: document.getElementById('machineWeightMin')?.value || '',
   reliefPressure: document.getElementById('reliefPressure')?.value || '',
-  fluidTemperature: document.getElementById('fluidTemperature')?.value || '',
   chargePressure: document.getElementById('chargePressure')?.value || '',
+  casePressure: document.getElementById('drainPressure')?.value || '',
+  maximumTractiveEffort: document.getElementById('tractiveEffort')?.value || '',
+  maxSpeedFullDisplacement: document.getElementById('maxSpeedFull')?.value || '',
+  maxSpeedReducedDisplacement: document.getElementById('maxSpeedReduced')?.value || '',
+  flushingRequired: document.getElementById('flushingRequired')?.value || '',
+  flushingRateInfo: document.getElementById('flushingRate')?.value || '',
+  fluidManufacturer: document.getElementById('fluidManufacturer')?.value || '',
+  fluidViscosityGrade: document.getElementById('fluidSpecification')?.value || '',
+  maxFluidTemperature: document.getElementById('fluidTemperature')?.value || '',
   paintRequired: document.getElementById('paintRequired')?.value || '',
-  drainPressure: document.getElementById('drainPressure')?.value || '',
   speedSensorRequired: document.getElementById('speedSensorRequired')?.value || '',
-  tractiveEffort: document.getElementById('tractiveEffort')?.value || '',
-  sensorPowerSupply: document.getElementById('sensorPowerSupply')?.value || '',
-  maxSpeedFull: document.getElementById('maxSpeedFull')?.value || '',
+  speedSensorPowerDetails: document.getElementById('sensorPowerSupply')?.value || '',
+  parkingBrakeRequired: document.getElementById('parkingBrakeRequired')?.value || '',
+  wheelRollerDiameter: document.getElementById('wheelRollerDiameter')?.value || '',
+
+  // Motor installation details
+  numberOfMotorsPerMachine: document.getElementById('numberOfMotorsPerMachine')?.value || '',
+  vehicleUsesFreewheel: document.getElementById('vehicleUsesFreewheel')?.value || '',
+  wheelLoadOffset: document.getElementById('wheelLoadOffset')?.value || '',
+  wheelStudsRequired: document.getElementById('wheelStudsRequired')?.value || '',
+  desiredWheelInstallationPCD: document.getElementById('desiredWheelInstallationPCD')?.value || '',
+  desiredWheelInstallationHolePattern: document.getElementById('desiredWheelInstallationHolePattern')?.value || '',
+  desiredMotorInstallationPCD: document.getElementById('desiredMotorInstallationPCD')?.value || '',
+  desiredMotorInstallationHolePattern: document.getElementById('desiredMotorInstallationHolePattern')?.value || '',
+  desiredPortType: document.getElementById('desiredPortType')?.value || '',
+  machineDutyCycle: document.getElementById('machineDutyCycle')?.value || '',
+
+  // Brakes / torques
   brakeRequirements: document.getElementById('brakeRequirements')?.value || '',
-  maxSpeedReduced: document.getElementById('maxSpeedReduced')?.value || '',
-  staticBrakeTorque: document.getElementById('staticBrakeTorque')?.value || '',
-  dynamicBrakeTorque: document.getElementById('dynamicBrakeTorque')?.value || ''
+  staticBrakeTorqueReq: document.getElementById('staticBrakeTorque')?.value || '',
+  dynamicBrakeTorqueReq: document.getElementById('dynamicBrakeTorque')?.value || ''
+  // recaptchaToken will be attached after obtaining token
 };
 
-// disable submit button to avoid double submissions
+// disable submit while processing
 const submitBtn = form.querySelector('button[type="submit"]');
 if (submitBtn) submitBtn.disabled = true;
 
 // ensure grecaptcha available
-if (!window.grecaptcha || typeof grecaptcha.execute !== 'function' || !SITE_KEY || SITE_KEY === 'SITE_KEY_REPLACE_ME') {
-  console.error('reCAPTCHA not available or SITE_KEY not set. Submission aborted to avoid missing recaptchaToken.');
-  alert('reCAPTCHA unavailable — disable tracking protection or test in another browser, then try again.');
+if (!window.grecaptcha || typeof grecaptcha.execute !== 'function') {
+  console.error('reCAPTCHA not available. Submission aborted.');
+  alert('reCAPTCHA not available — disable tracker blocking or test in another browser.');
   if (submitBtn) submitBtn.disabled = false;
   return;
 }
 
 console.log('grecaptcha detected; requesting token');
-
 obtainRecaptchaToken('submit', 10000)
   .then(token => {
     console.log('recaptcha token (full):', token);
     payload.recaptchaToken = token;
-    console.log('payload before fetch:', JSON.stringify(payload));
-    return doPost(payload); // doPost returns a Promise
+    console.log('payload before fetch:', JSON.stringify(payload).slice(0,1000));
+    return doPost(payload);
   })
   .catch(err => {
     console.error('reCAPTCHA/token error:', err);
