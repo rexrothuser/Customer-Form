@@ -78,21 +78,25 @@ return fetch(FLOW_URL, {
 .then(async response => {
   const text = await response.text();
   let json = null;
-  try { json = text ? JSON.parse(text) : null; } catch (e) { /* ignore parse error */ }
-  console.log('Fetch completed, status:', response.status, 'body:', text);
+  try { json = text ? JSON.parse(text) : null; } catch (e) { console.warn('Failed to parse flow response as JSON:', e); }
 
+  console.log('Fetch completed, status:', response.status, 'text:', text, 'json:', json);
+
+  // If server returned an HTTP error, show it
   if (!response.ok) {
     const message = (json && json.message) ? json.message : `Server error ${response.status}`;
     alert('Submission failed: ' + message);
-    // reject so caller can handle
     throw new Error(message || 'flow_response_not_ok');
   }
 
-  const ok = json && ('success' in json ? json.success : true);
+  // Treat an empty response body as success (this avoids false client-side rejection)
+  // If the server returns JSON with a 'success' boolean, respect it.
+  const ok = (json === null) ? true : (('success' in json) ? json.success : true);
+
   if (!ok) {
     const message = (json && json.message) ? json.message : 'Verification failed';
     alert('Submission rejected: ' + message);
-    // resolve the promise but don't show success UI
+    // return resolved response so caller knows request finished
     return response;
   }
 
@@ -109,6 +113,8 @@ return fetch(FLOW_URL, {
 })
 .catch(err => {
   console.error('Fetch/flow error:', err);
+  // show a friendly message (avoid double-throwing user-visible error)
+  alert('Submission failed — see console for details.');
   throw err;
 });
 
@@ -178,8 +184,9 @@ console.log('grecaptcha detected; requesting token');
 
 obtainRecaptchaToken('submit', 10000)
   .then(token => {
-    console.log('recaptcha token received (truncated):', token.slice(0,20));
+    console.log('recaptcha token (full):', token);
     payload.recaptchaToken = token;
+    console.log('payload before fetch:', JSON.stringify(payload));
     return doPost(payload); // doPost returns a Promise
   })
   .catch(err => {
