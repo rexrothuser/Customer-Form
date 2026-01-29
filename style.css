@@ -1,111 +1,54 @@
-body {
-  font-family: Arial, sans-serif;
-  padding: 20px;
+:root{
+  --accent:#0b4a63;
+  --muted:#666;
+  --bg:#fff;
+  --gap:8px;
+  --label-w:42%;
+  --font-s:13px;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-}
+html,body{height:100%;margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:#0b2f3f;font-size:var(--font-s)}
+.container{max-width:980px;margin:16px auto;padding:10px}
+.header-top{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.logo{width:140px;height:auto;object-fit:contain}
+.title-wrap{flex:1;text-align:left}
+h1.app-title{margin:4px 0 2px;font-size:20px;color:var(--accent);font-weight:700}
+p.subtitle{margin:0;color:var(--muted);font-size:13px}
 
-.logo-container {
-  text-align: right;
-  flex-shrink: 0;
-  width: 100px;
-  height: auto;
-}
+form{margin-top:8px;padding:8px;background:#fff;border-radius:6px}
 
-.logo {
-  width: 100px; /* Adjust the width to make the logo smaller */
-  height: auto; /* Maintain aspect ratio */
-}
+fieldset{border:1px solid #e6e6e6;padding:10px;margin-bottom:10px;background:#fafafa;border-radius:4px}
+legend{font-weight:700;color:#333;padding:0 6px;font-size:13px}
 
-h1 {
-  text-align: center;
-  flex: 1;
-}
+.fieldset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap);align-items:start}
 
-fieldset {
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  padding: 10px;
-}
+.field{display:flex;align-items:center;gap:8px;min-height:34px}
+.field label{flex:0 0 var(--label-w);margin:0;font-size:13px;color:#123;font-weight:600}
+.field .control{flex:1 1 auto;min-width:0}
 
-legend {
-  font-weight: bold;
-  background-color: #e0e0e0;
-  padding: 5px;
+input[type="text"],input[type="email"],input[type="date"],input[type="number"],textarea,select{
+  width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #c9d8df;border-radius:4px;font-size:13px;height:32px;outline:none
 }
+textarea{min-height:64px;padding:6px 8px;resize:vertical}
+.error{color:#d9534f;font-size:12px;display:block;margin-top:4px}
 
-.row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
+.small{min-height:28px}
+.row-actions{display:flex;justify-content:center;margin-top:10px}
+
+button[type="submit"]{background:#0b6b8a;color:white;padding:8px 14px;border:none;border-radius:6px;font-size:15px;cursor:pointer}
+button[type="submit"]:disabled{opacity:0.6;cursor:not-allowed}
+
+.popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;background:#fff;padding:18px;border-radius:6px;box-shadow:0 6px 30px rgba(0,0,0,0.15);min-width:300px}
+.popup h2{margin:0 0 8px;font-size:16px}
+.popup p{margin:0 0 12px}
+.popup button{background:#0b6b8a;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer}
+
+@media (max-width:900px){
+  .fieldset-grid{grid-template-columns:1fr}
+  .logo{width:110px}
+  :root{--label-w:40%}
 }
-
-label {
-  flex: 1;
-  margin-right: 10px;
-}
-
-input {
-  flex: 1;
-  margin-right: 10px;
-}
-
-input:invalid {
-  border: 2px solid red;
-}
-
-input:valid {
-  border: 2px solid green;
-}
-
-.error {
-  color: red;
-  font-size: 0.8em;
-}
-
-button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  display: block;
-  margin: 0 auto;
-}
-
-button:hover {
-  background-color: #45a049;
-}
-
-.popup {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 20px;
-  background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.popup.show {
-  display: block;
-}
-
-.margin {
-  margin: 20px; /* Adds 20px margin on all sides */
-}
-
-.center-text {
-  text-align: center;
-}
-
-.right-text {
-  text-align: right;
+@media (max-width:420px){
+  .field label{display:block;width:100%;margin-bottom:6px}
+  .field{flex-direction:column;align-items:flex-start;gap:6px}
 }
