@@ -18,6 +18,103 @@ else reliefError.textContent = '';
 });
 }
 
+// Helper: obtain a reCAPTCHA token with timeout and error handling
+function obtainRecaptchaToken(action = 'submit', timeoutMs = 10000) {
+return new Promise((resolve, reject) => {
+if (!window.grecaptcha || typeof grecaptcha.execute !== 'function') {
+return reject(new Error('grecaptcha_not_available'));
+}
+
+  let finished = false;
+  const timer = setTimeout(() => {
+    if (finished) return;
+    finished = true;
+    reject(new Error('recaptcha_timeout'));
+  }, timeoutMs);
+
+  try {
+    grecaptcha.ready(() => {
+      grecaptcha.execute(SITE_KEY, { action })
+        .then(token => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          if (!token) return reject(new Error('empty_token'));
+          resolve(token);
+        })
+        .catch(err => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          reject(err || new Error('grecaptcha_execute_error'));
+        });
+    });
+  } catch (err) {
+    if (!finished) {
+      finished = true;
+      clearTimeout(timer);
+      reject(err || new Error('grecaptcha_exception'));
+    }
+  }
+});
+
+
+}
+
+// helper: POST payload to flow and handle response. RETURNS the fetch promise.
+function doPost(finalPayload) {
+console.log('Attempting POST to FLOW URL (truncated payload):', JSON.stringify(finalPayload).slice(0,300));
+if (!FLOW_URL || FLOW_URL.includes('REPLACE_ME')) {
+console.error('FLOW_URL not configured.');
+alert('FLOW_URL not configured. See console.');
+return Promise.reject(new Error('flow_url_missing'));
+}
+
+return fetch(FLOW_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(finalPayload)
+})
+.then(async response => {
+  const text = await response.text();
+  let json = null;
+  try { json = text ? JSON.parse(text) : null; } catch (e) { /* ignore parse error */ }
+  console.log('Fetch completed, status:', response.status, 'body:', text);
+
+  if (!response.ok) {
+    const message = (json && json.message) ? json.message : `Server error ${response.status}`;
+    alert('Submission failed: ' + message);
+    // reject so caller can handle
+    throw new Error(message || 'flow_response_not_ok');
+  }
+
+  const ok = json && ('success' in json ? json.success : true);
+  if (!ok) {
+    const message = (json && json.message) ? json.message : 'Verification failed';
+    alert('Submission rejected: ' + message);
+    // resolve the promise but don't show success UI
+    return response;
+  }
+
+  // success -> show popup
+  const popup = document.createElement('div');
+  popup.className = 'popup show';
+  popup.innerHTML = `<h2>Form Submitted Successfully</h2>
+    <p>Thank you for your submission, ${finalPayload.customer}.</p>
+    <button id="closePopup">Close</button>`;
+  document.body.appendChild(popup);
+  document.getElementById('closePopup').addEventListener('click', () => popup.remove());
+
+  return response;
+})
+.catch(err => {
+  console.error('Fetch/flow error:', err);
+  throw err;
+});
+
+
+}
+
 const form = document.getElementById('motorForm');
 if (!form) {
 console.error('Form element not found: id="motorForm"');
@@ -65,66 +162,42 @@ const payload = {
   dynamicBrakeTorque: document.getElementById('dynamicBrakeTorque')?.value || ''
 };
 
-// helper: POST payload to flow
-function doPost(finalPayload) {
-  console.log('Attempting POST to FLOW URL (truncated payload):', JSON.stringify(finalPayload).slice(0,300));
-  if (!FLOW_URL || FLOW_URL.includes('REPLACE_ME')) {
-    console.error('FLOW_URL not configured.');
-    alert('FLOW_URL not configured. See console.');
-    return;
-  }
+// disable submit button to avoid double submissions
+const submitBtn = form.querySelector('button[type="submit"]');
+if (submitBtn) submitBtn.disabled = true;
 
-  fetch(FLOW_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(finalPayload)
-  })
-  .then(response => {
-    console.log('Fetch completed, status:', response.status);
-    return response.text().then(text => console.log('Fetch response body (truncated):', (text || '').slice(0,500)));
-  })
-  .then(() => {
-    const popup = document.createElement('div');
-    popup.className = 'popup show';
-    popup.innerHTML = `<h2>Form Submitted Successfully</h2>
-      <p>Thank you for your submission, ${finalPayload.customer}.</p>
-      <button id="closePopup">Close</button>`;
-    document.body.appendChild(popup);
-    document.getElementById('closePopup').addEventListener('click', () => popup.remove());
-  })
-  .catch(err => {
-    console.error('Fetch error:', err);
-    alert('Submission failed — see console (possible CORS).');
-  });
-}
-
-// Ensure grecaptcha is available and request token
+// ensure grecaptcha available
 if (!window.grecaptcha || typeof grecaptcha.execute !== 'function' || !SITE_KEY || SITE_KEY === 'SITE_KEY_REPLACE_ME') {
   console.error('reCAPTCHA not available or SITE_KEY not set. Submission aborted to avoid missing recaptchaToken.');
   alert('reCAPTCHA unavailable — disable tracking protection or test in another browser, then try again.');
+  if (submitBtn) submitBtn.disabled = false;
   return;
 }
 
 console.log('grecaptcha detected; requesting token');
-grecaptcha.ready(function () {
-  grecaptcha.execute(SITE_KEY, { action: 'submit' })
-    .then(function (token) {
-      if (!token) {
-        console.error('Empty token returned by grecaptcha.execute');
-        alert('reCAPTCHA failed to return a token — try another browser.');
-        return;
-      }
-      console.log('recaptcha token received (truncated):', token.slice(0,20));
-      payload.recaptchaToken = token;
-      doPost(payload);
-    })
-    .catch(function (err) {
-      console.error('grecaptcha.execute error:', err);
-      alert('reCAPTCHA execution failed — check console. Submission aborted.');
-    });
-});
+
+obtainRecaptchaToken('submit', 10000)
+  .then(token => {
+    console.log('recaptcha token received (truncated):', token.slice(0,20));
+    payload.recaptchaToken = token;
+    return doPost(payload); // doPost returns a Promise
+  })
+  .catch(err => {
+    console.error('reCAPTCHA/token error:', err);
+    if (err.message === 'grecaptcha_not_available') {
+      alert('reCAPTCHA not available. Disable tracker blocking or try another browser.');
+    } else if (err.message === 'recaptcha_timeout') {
+      alert('reCAPTCHA timed out. Try again.');
+    } else if (err.message === 'empty_token') {
+      alert('reCAPTCHA returned an empty token. Try again.');
+    } else {
+      alert('reCAPTCHA failed — submission aborted. See console for details.');
+    }
+  })
+  .finally(() => {
+    if (submitBtn) submitBtn.disabled = false;
+  });
 
 
 });
 });
-
