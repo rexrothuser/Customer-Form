@@ -28,6 +28,11 @@
     .inline-item .control input,
     .inline-item .control select { width:100%; }
 
+    /* Two-column arrangement for duty cycle + additional info (left labels / right controls) */
+    .two-col { display:flex; gap:12px; width:100%; align-items:flex-start; }
+    .two-col .two-left { flex:0 0 42%; display:flex; flex-direction:column; gap:14px; }
+    .two-col .two-right { flex:1; display:flex; flex-direction:column; gap:8px; }
+
     /* modal for duty cycle table */
     .modal-overlay {
       position: fixed;
@@ -101,6 +106,8 @@
       .other-input{flex-direction:column;align-items:flex-start}
       .other-input label{width:100%;margin-bottom:6px}
       .inline-row { flex-direction: column; }
+      .two-col { flex-direction:column; }
+      .two-col .two-left { width:100%; }
     }
   </style>
 </head>
@@ -228,26 +235,25 @@
             </div>
           </div>
 
-          <!-- Machine duty cycle control -->
+          <!-- Machine duty cycle (labels on left, controls on right) and Additional information aligned with right -->
           <div class="field" style="grid-column: 1 / -1;">
-            <label for="machineDutyCycle">Machine duty cycle</label>
-            <div class="control">
-              <input id="machineDutyCycle" name="machineDutyCycle" type="hidden" />
-              <div style="display:flex;gap:8px;align-items:center">
-                <button type="button" id="editDutyCycleBtn">Edit duty cycle</button>
-                <div id="machineDutyCycleSummary" aria-live="polite">No duty cycle defined.</div>
+            <div class="two-col">
+              <div class="two-left">
+                <label>Machine duty cycle</label>
+                <label style="margin-top:6px;">Additional information (notes, photos, attachments)</label>
               </div>
-            </div>
-          </div>
+              <div class="two-right">
+                <div style="display:flex;gap:8px;align-items:center">
+                  <button type="button" id="editDutyCycleBtn">Edit duty cycle</button>
+                  <div id="machineDutyCycleSummary" aria-live="polite">No duty cycle defined.</div>
+                </div>
 
-          <!-- Additional information + attachments -->
-          <div class="field" style="grid-column: 1 / -1;">
-            <label for="additionalInformation">Additional information (notes, photos, attachments)</label>
-            <div class="control">
-              <textarea id="additionalInformation" name="additionalInformation" rows="5" placeholder="Add any notes here..."></textarea>
-              <div style="margin-top:6px;font-size:13px;color:#666;">
-                Attach files (optional): <input id="attachmentsInput" type="file" name="attachments" multiple accept="image/*,application/pdf" />
-                <div style="font-size:12px;color:#999;">Tip: small images can be embedded in the submission. For larger files, use external upload and include URLs.</div>
+                <textarea id="additionalInformation" name="additionalInformation" rows="5" placeholder="Add any notes here..." style="margin-top:6px;"></textarea>
+
+                <div style="margin-top:6px;font-size:13px;color:#666;">
+                  Attach files (optional): <input id="attachmentsInput" type="file" name="attachments" multiple accept="image/*,application/pdf" />
+                  <div style="font-size:12px;color:#999;margin-top:4px;">Tip: small images can be embedded in the submission. For larger files, use external upload and include URLs.</div>
+                </div>
               </div>
             </div>
           </div>
