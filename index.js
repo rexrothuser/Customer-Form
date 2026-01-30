@@ -1,11 +1,11 @@
-// index.js
+/* index.js */
 document.addEventListener('DOMContentLoaded', function () {
   console.log('index.js loaded');
 
   const SITE_KEY = '6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3';
   const FLOW_URL = 'https://default0ae51e1907c84e4bbb6d648ee58410.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1f6f13bc2d7a4b508a04bb8b03bc3342/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oL23bmTH8ieQn3nR8OyzhCwOqv-rbWuUt1P8OBVnDWo';
 
-  // Wire up Application type 'Other' behavior
+  // Elements for Application type + Other
   const appTypeSelect = document.getElementById('applicationType');
   const appTypeOtherWrap = document.getElementById('applicationTypeOtherWrap');
   const appTypeOtherInput = document.getElementById('applicationTypeOther');
@@ -14,15 +14,15 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateAppTypeOtherVisibility() {
       if (appTypeSelect.value === '__other__') {
         appTypeOtherWrap.classList.add('show');
-        appTypeOtherWrap.style.display = ''; // allow CSS rules to show
+        appTypeOtherWrap.setAttribute('aria-hidden', 'false');
         appTypeOtherInput.focus();
       } else {
         appTypeOtherWrap.classList.remove('show');
-        appTypeOtherWrap.style.display = 'none';
+        appTypeOtherWrap.setAttribute('aria-hidden', 'true');
         appTypeOtherInput.value = '';
       }
     }
-    // initialize visibility on load
+    // initialize
     updateAppTypeOtherVisibility();
     appTypeSelect.addEventListener('change', updateAppTypeOtherVisibility);
   }
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // doPost: posts payload, tolerant and defensive
+  // doPost (defensive)
   function doPost(finalPayload) {
     console.log('Attempting POST to FLOW URL (payload):', JSON.stringify(finalPayload).slice(0,1000));
     if (!FLOW_URL || FLOW_URL.includes('REPLACE_ME')) {
@@ -82,18 +82,10 @@ document.addEventListener('DOMContentLoaded', function () {
       body: JSON.stringify(finalPayload)
     })
     .then(async response => {
-      // Safely read response text and parse if possible
       let text = '';
-      try {
-        text = await response.text();
-      } catch (e) {
-        console.warn('Failed to read response text:', e);
-        text = '';
-      }
-
+      try { text = await response.text(); } catch (e) { console.warn('Failed to read response text:', e); }
       let json = null;
-      try { json = text ? JSON.parse(text) : null; } catch (e) { console.warn('Flow response not JSON:', e); }
-
+      try { if (text) json = JSON.parse(text); } catch (e) { console.warn('Flow response not JSON:', e, text); }
       console.log('Fetch completed, status:', response.status, 'bodyText length:', (typeof text === 'string' ? text.length : 0), 'json:', json);
 
       if (!response.ok) {
@@ -109,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return response;
       }
 
-      // success popup showing server response for debugging
       const popup = document.createElement('div');
       popup.className = 'popup show';
       popup.innerHTML = `<h2>Form Submitted Successfully</h2>
@@ -134,11 +125,17 @@ document.addEventListener('DOMContentLoaded', function () {
     e.preventDefault();
     console.log('submit handler fired');
 
-    // applicationType: use Other input when selected
+    // If Application type is Other, require the typed value
     let applicationTypeValue = '';
     if (appTypeSelect) {
       if (appTypeSelect.value === '__other__') {
-        applicationTypeValue = (appTypeOtherInput && appTypeOtherInput.value.trim()) ? appTypeOtherInput.value.trim() : '';
+        const typed = appTypeOtherInput.value.trim();
+        if (!typed) {
+          alert('Please specify the application type in the "Application type (if Other)" field.');
+          appTypeOtherInput.focus();
+          return;
+        }
+        applicationTypeValue = typed;
       } else {
         applicationTypeValue = appTypeSelect.value;
       }
