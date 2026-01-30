@@ -21,7 +21,7 @@
     .other-input { display: none; }
     .other-input.show { display: flex; align-items: center; gap: 8px; min-height: 34px; }
 
-    /* inline triple layout for parking/static/dynamic */
+    /* inline row layout for parking + brake requirements */
     .inline-row { display:flex; gap:12px; align-items:flex-start; width:100%; }
     .inline-item { flex:1; display:flex; flex-direction:column; gap:6px; }
     .inline-item label { font-size:13px; font-weight:600; color:#123; }
@@ -166,7 +166,7 @@
           <div class="field"><label for="machineWeightMax">Total machine weight (max)</label><div class="control"><input id="machineWeightMax" name="machineWeightMax" type="number" required></div></div>
           <div class="field"><label for="machineWeightMin">Total machine weight (min)</label><div class="control"><input id="machineWeightMin" name="machineWeightMin" type="number" required></div></div>
 
-          <!-- Relief and Charge next to each other (no inline validation) -->
+          <!-- Relief and Charge next to each other -->
           <div class="field"><label for="reliefPressure">Relief Pressure (bar)</label><div class="control"><input id="reliefPressure" name="reliefPressure" type="number" required></div></div>
           <div class="field"><label for="chargePressure">Charge Pressure (bar)</label><div class="control"><input id="chargePressure" name="chargePressure" type="number" required></div></div>
 
@@ -190,7 +190,20 @@
           <div class="field"><label for="speedSensorRequired">Is a speed sensor required?</label><div class="control"><select id="speedSensorRequired" name="speedSensorRequired" required><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
           <div class="field"><label for="sensorPowerSupply">Speed sensor power / details</label><div class="control"><input id="sensorPowerSupply" name="sensorPowerSupply" type="text"></div></div>
 
-          <!-- moved parking brake + static + dynamic to the end of this section and inline -->
+          <div class="field"><label for="wheelRollerDiameter">Wheel / Roller diameter (mm)</label><div class="control"><input id="wheelRollerDiameter" name="wheelRollerDiameter" type="text"></div></div>
+
+          <div class="field"><label for="wheelLoadOffset">Wheel load offset (x) (mm)</label><div class="control"><input id="wheelLoadOffset" name="wheelLoadOffset" type="text"></div></div>
+
+          <!-- Illustration -->
+          <div class="field" style="align-items:flex-start;gap:12px">
+            <label>Wheel offset illustration</label>
+            <div class="control illustration">
+              <img id="wheelOffsetImg" src="wheel_offset.png" alt="Wheel load offset diagram">
+              <div style="font-size:12px;color:#666;margin-top:6px;">Radial / axial load illustration — provide the file wheel_offset.png in the site folder or update the src.</div>
+            </div>
+          </div>
+
+          <!-- parking + brake requirements side by side -->
           <div class="field" style="grid-column: 1 / -1;">
             <div class="inline-row">
               <div class="inline-item">
@@ -204,33 +217,12 @@
                 </div>
               </div>
 
-              <div class="inline-item" id="staticBrakeWrap" style="display:none;">
-                <label for="staticBrakeTorque">Static brake torque required per motor</label>
-                <div class="control"><input id="staticBrakeTorque" name="staticBrakeTorque" type="text"></div>
-              </div>
-
               <div class="inline-item">
-                <label for="dynamicBrakeTorque">Dynamic brake torque required per motor</label>
-                <div class="control"><input id="dynamicBrakeTorque" name="dynamicBrakeTorque" type="text"></div>
+                <label for="brakeRequirements">Brake requirements</label>
+                <div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text"></div>
               </div>
             </div>
           </div>
-
-          <div class="field"><label for="wheelRollerDiameter">Wheel / Roller diameter (mm)</label><div class="control"><input id="wheelRollerDiameter" name="wheelRollerDiameter" type="text"></div></div>
-
-          <div class="field"><label for="wheelLoadOffset">Wheel load offset (x) (mm)</label><div class="control"><input id="wheelLoadOffset" name="wheelLoadOffset" type="text"></div></div>
-
-          <!-- Illustration: replace wheel_offset.png with your local image filename if needed -->
-          <div class="field" style="align-items:flex-start;gap:12px">
-            <label>Wheel offset illustration</label>
-            <div class="control illustration">
-              <!-- Save your second photo in same folder and name it wheel_offset.png -->
-              <img id="wheelOffsetImg" src="wheel_offset.png" alt="Wheel load offset diagram">
-              <div style="font-size:12px;color:#666;margin-top:6px;">Radial / axial load illustration — provide the file wheel_offset.png in the site folder or update the src.</div>
-            </div>
-          </div>
-
-          <div class="field"><label for="brakeRequirements">Brake requirements</label><div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text"></div></div>
 
         </div>
       </fieldset>
@@ -241,9 +233,6 @@
           <div class="field"><label for="numberOfMotorsPerMachine">Number of motors per machine</label><div class="control"><input id="numberOfMotorsPerMachine" name="numberOfMotorsPerMachine" type="number" min="1"></div></div>
           <div class="field"><label for="vehicleUsesFreewheel">Will the vehicle use freewheel?</label><div class="control"><input id="vehicleUsesFreewheel" name="vehicleUsesFreewheel" type="text"></div></div>
 
-          <div class="field"><label for="wheelLoadOffset">Wheel load offset</label><div class="control"><input id="wheelLoadOffset" name="wheelLoadOffset" type="text"></div></div>
-          <div class="field"><label for="wheelStudsRequired">Are wheel studs required?</label><div class="control"><input id="wheelStudsRequired" name="wheelStudsRequired" type="text"></div></div>
-
           <div class="field"><label for="desiredWheelInstallationPCD">Desired wheel installation PCD</label><div class="control"><input id="desiredWheelInstallationPCD" name="desiredWheelInstallationPCD" type="text"></div></div>
           <div class="field"><label for="desiredWheelInstallationHolePattern">Desired wheel installation hole/stud pattern</label><div class="control"><input id="desiredWheelInstallationHolePattern" name="desiredWheelInstallationHolePattern" type="text"></div></div>
 
@@ -253,7 +242,6 @@
           <div class="field">
             <label for="machineDutyCycle">Machine duty cycle</label>
             <div class="control">
-              <!-- Hidden field holds serialized JSON of the duty table; ID preserved -->
               <input id="machineDutyCycle" name="machineDutyCycle" type="hidden" />
               <div style="display:flex;gap:8px;align-items:center">
                 <button type="button" id="editDutyCycleBtn">Edit duty cycle</button>
@@ -288,7 +276,6 @@
               </tr>
             </thead>
             <tbody>
-              <!-- 10 rows generated by JS on open; kept empty here for fallback -->
               <tr><td>1</td><td><input data-row="1" data-col="speed"></td><td><input data-row="1" data-col="diff"></td><td><input data-row="1" data-col="oil"></td><td><input data-row="1" data-col="duration"></td><td><input data-row="1" data-col="radial"></td><td><input data-row="1" data-col="axial"></td><td><input data-row="1" data-col="offset"></td></tr>
               <tr><td>2</td><td><input data-row="2" data-col="speed"></td><td><input data-row="2" data-col="diff"></td><td><input data-row="2" data-col="oil"></td><td><input data-row="2" data-col="duration"></td><td><input data-row="2" data-col="radial"></td><td><input data-row="2" data-col="axial"></td><td><input data-row="2" data-col="offset"></td></tr>
               <tr><td>3</td><td><input data-row="3" data-col="speed"></td><td><input data-row="3" data-col="diff"></td><td><input data-row="3" data-col="oil"></td><td><input data-row="3" data-col="duration"></td><td><input data-row="3" data-col="radial"></td><td><input data-row="3" data-col="axial"></td><td><input data-row="3" data-col="offset"></td></tr>
