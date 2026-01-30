@@ -6,12 +6,91 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css">
   <style>
-    /* ensure the "Other" input uses same layout as other .field elements when shown */
+    /* Small visual adjustments to keep form professional */
+    .control select,
+    .control input[type="text"],
+    .control input[type="date"],
+    .control input[type="number"],
+    .control textarea {
+      height: 36px;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    /* inline other input uses same row layout */
     .other-input { display: none; }
     .other-input.show { display: flex; align-items: center; gap: 8px; min-height: 34px; }
-    .other-input label { flex: 0 0 42%; margin: 0; font-size:13px; color:#123; font-weight:600; }
-    .other-input .control { flex: 1 1 auto; min-width:0; }
-    .other-input .control input { width:100%; box-sizing:border-box; padding:6px 8px; border:1px solid #c9d8df; border-radius:4px; height:32px; }
+
+    /* modal for duty cycle table */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      z-index: 9998;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 6px;
+      max-width: 920px;
+      width: calc(100% - 40px);
+      max-height: 80vh;
+      overflow: auto;
+      padding: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      font-size: 13px;
+      z-index: 9999;
+    }
+    .modal h3 { margin: 0 0 10px; font-size: 16px; }
+    .modal .table-wrap { overflow:auto; max-height:60vh; }
+    table.duty-table { border-collapse: collapse; width:100%; }
+    table.duty-table th, table.duty-table td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 13px;
+    }
+    table.duty-table input[type="text"], table.duty-table input[type="number"]{
+      width:100%; box-sizing:border-box; padding:6px; border-radius:3px; border:1px solid #c9d8df;
+    }
+    .modal .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+
+    /* A clean summary look for the duty cycle field */
+    #machineDutyCycleSummary {
+      margin-top:6px;
+      font-size: 13px;
+      color: #333;
+    }
+
+    /* image styling for wheel offset */
+    .illustration {
+      margin-top:6px;
+      border: 1px solid #e2e6ea;
+      padding: 8px;
+      display:inline-block;
+      background: #fff;
+      border-radius:4px;
+    }
+    .illustration img { max-width:320px; width:100%; height:auto; display:block; }
+
+    /* hide number input spin buttons (WebKit) */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    /* Firefox */
+    input[type="number"] { -moz-appearance: textfield; }
+
+    /* make selects look consistent */
+    select { appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: linear-gradient(45deg, transparent 50%, #333 50%), linear-gradient(135deg, #333 50%, transparent 50%); background-position: calc(100% - 12px) calc(1em + 2px), calc(100% - 7px) calc(1em + 2px); background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 28px; }
+
+    /* small responsive */
+    @media (max-width:900px){
+      .other-input{flex-direction:column;align-items:flex-start}
+      .other-input label{width:100%;margin-bottom:6px}
+    }
   </style>
 </head>
 <body>
@@ -43,9 +122,9 @@
             </div>
           </div>
 
-          <!-- Separate text input shown only when Other selected -->
+          <!-- Separate text input shown only when Other selected (same row) -->
           <div class="field other-input" id="applicationTypeOtherWrap" aria-hidden="true">
-            <label for="applicationTypeOther">Application type (if Other)</label>
+            <label for="applicationTypeOther">If Other, specify</label>
             <div class="control">
               <input id="applicationTypeOther" name="applicationTypeOther" type="text" placeholder="Type application type">
             </div>
@@ -89,45 +168,68 @@
           <div class="field"><label for="maxSpeedFull">Max. Speed (Full displacement)</label><div class="control"><input id="maxSpeedFull" name="maxSpeedFull" type="number" required></div></div>
           <div class="field"><label for="maxSpeedReduced">Max. Speed (Reduced displacement)</label><div class="control"><input id="maxSpeedReduced" name="maxSpeedReduced" type="number" required></div></div>
 
-          <div class="field"><label for="flushingRequired">Is flushing required?</label><div class="control"><input id="flushingRequired" name="flushingRequired" type="text" placeholder="Yes / No / Details" required></div></div>
-          <div class="field"><label for="flushingRate">Flushing rate / info</label><div class="control"><input id="flushingRate" name="flushingRate" type="text" required></div></div>
+          <!-- Yes/No dropdowns for binary choices -->
+          <div class="field"><label for="flushingRequired">Is flushing required?</label><div class="control"><select id="flushingRequired" name="flushingRequired" required><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
 
-          <div class="field"><label for="fluidManufacturer">Fluid manufacturer and name</label><div class="control"><input id="fluidManufacturer" name="fluidManufacturer" type="text" required></div></div>
-          <div class="field"><label for="fluidSpecification">Fluid specification / viscosity grade</label><div class="control"><input id="fluidSpecification" name="fluidSpecification" type="text" required></div></div>
+          <div class="field"><label for="flushingRate">Flushing rate / info</label><div class="control"><input id="flushingRate" name="flushingRate" type="text"></div></div>
 
-          <div class="field"><label for="fluidTemperature">Fluid max temperature (°C)</label><div class="control"><input id="fluidTemperature" name="fluidTemperature" type="number" required></div></div>
-          <div class="field"><label for="paintRequired">Paint required?</label><div class="control"><input id="paintRequired" name="paintRequired" type="text" placeholder="Yes / No / Details" required></div></div>
+          <div class="field"><label for="fluidManufacturer">Fluid manufacturer and name</label><div class="control"><input id="fluidManufacturer" name="fluidManufacturer" type="text"></div></div>
+          <div class="field"><label for="fluidSpecification">Fluid specification / viscosity grade</label><div class="control"><input id="fluidSpecification" name="fluidSpecification" type="text"></div></div>
 
-          <div class="field"><label for="speedSensorRequired">Is a speed sensor required?</label><div class="control"><input id="speedSensorRequired" name="speedSensorRequired" type="text" required></div></div>
-          <div class="field"><label for="sensorPowerSupply">Speed sensor power / details</label><div class="control"><input id="sensorPowerSupply" name="sensorPowerSupply" type="text" required></div></div>
+          <div class="field"><label for="fluidTemperature">Fluid max temperature (°C)</label><div class="control"><input id="fluidTemperature" name="fluidTemperature" type="number"></div></div>
+          <div class="field"><label for="paintRequired">Paint required?</label><div class="control"><select id="paintRequired" name="paintRequired" required><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
 
-          <div class="field"><label for="parkingBrakeRequired">Is a parking brake required?</label><div class="control"><input id="parkingBrakeRequired" name="parkingBrakeRequired" type="text" required></div></div>
-          <div class="field"><label for="wheelRollerDiameter">Wheel / Roller diameter</label><div class="control"><input id="wheelRollerDiameter" name="wheelRollerDiameter" type="text" required></div></div>
+          <div class="field"><label for="speedSensorRequired">Is a speed sensor required?</label><div class="control"><select id="speedSensorRequired" name="speedSensorRequired" required><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
+          <div class="field"><label for="sensorPowerSupply">Speed sensor power / details</label><div class="control"><input id="sensorPowerSupply" name="sensorPowerSupply" type="text"></div></div>
 
-          <div class="field"><label for="brakeRequirements">Brake requirements</label><div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text" required></div></div>
-          <div class="field"><label for="staticBrakeTorque">Static brake torque required per motor</label><div class="control"><input id="staticBrakeTorque" name="staticBrakeTorque" type="text" required></div></div>
+          <div class="field"><label for="parkingBrakeRequired">Is a parking brake required?</label><div class="control"><select id="parkingBrakeRequired" name="parkingBrakeRequired" required><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
+          <div class="field"><label for="wheelRollerDiameter">Wheel / Roller diameter</label><div class="control"><input id="wheelRollerDiameter" name="wheelRollerDiameter" type="text"></div></div>
 
-          <div class="field"><label for="dynamicBrakeTorque">Dynamic brake torque required per motor</label><div class="control"><input id="dynamicBrakeTorque" name="dynamicBrakeTorque" type="text" required></div></div>
+          <div class="field"><label for="wheelLoadOffset">Wheel load offset</label><div class="control"><input id="wheelLoadOffset" name="wheelLoadOffset" type="text"></div></div>
+
+          <!-- Illustration: replace wheel_offset.png with your local image filename if needed -->
+          <div class="field" style="align-items:flex-start;gap:12px">
+            <label>Wheel offset illustration</label>
+            <div class="control illustration">
+              <!-- Save your second photo in same folder and name it wheel_offset.png -->
+              <img id="wheelOffsetImg" src="wheel_offset.png" alt="Wheel load offset diagram">
+              <div style="font-size:12px;color:#666;margin-top:6px;">Radial / axial load illustration — provide the file wheel_offset.png in the site folder or update the src.</div>
+            </div>
+          </div>
+
+          <div class="field"><label for="brakeRequirements">Brake requirements</label><div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text"></div></div>
+          <div class="field"><label for="staticBrakeTorque">Static brake torque required per motor</label><div class="control"><input id="staticBrakeTorque" name="staticBrakeTorque" type="text"></div></div>
+
+          <div class="field"><label for="dynamicBrakeTorque">Dynamic brake torque required per motor</label><div class="control"><input id="dynamicBrakeTorque" name="dynamicBrakeTorque" type="text"></div></div>
         </div>
       </fieldset>
 
       <fieldset id="motorInstallationDetails">
         <legend>Motor Installation Details</legend>
         <div class="fieldset-grid">
-          <div class="field"><label for="numberOfMotorsPerMachine">Number of motors per machine</label><div class="control"><input id="numberOfMotorsPerMachine" name="numberOfMotorsPerMachine" type="number" min="1" required></div></div>
-          <div class="field"><label for="vehicleUsesFreewheel">Will the vehicle use freewheel?</label><div class="control"><input id="vehicleUsesFreewheel" name="vehicleUsesFreewheel" type="text" required></div></div>
+          <div class="field"><label for="numberOfMotorsPerMachine">Number of motors per machine</label><div class="control"><input id="numberOfMotorsPerMachine" name="numberOfMotorsPerMachine" type="number" min="1"></div></div>
+          <div class="field"><label for="vehicleUsesFreewheel">Will the vehicle use freewheel?</label><div class="control"><input id="vehicleUsesFreewheel" name="vehicleUsesFreewheel" type="text"></div></div>
 
-          <div class="field"><label for="wheelLoadOffset">Wheel load offset</label><div class="control"><input id="wheelLoadOffset" name="wheelLoadOffset" type="text" required></div></div>
-          <div class="field"><label for="wheelStudsRequired">Are wheel studs required?</label><div class="control"><input id="wheelStudsRequired" name="wheelStudsRequired" type="text" required></div></div>
+          <div class="field"><label for="wheelLoadOffset">Wheel load offset</label><div class="control"><input id="wheelLoadOffset" name="wheelLoadOffset" type="text"></div></div>
+          <div class="field"><label for="wheelStudsRequired">Are wheel studs required?</label><div class="control"><input id="wheelStudsRequired" name="wheelStudsRequired" type="text"></div></div>
 
-          <div class="field"><label for="desiredWheelInstallationPCD">Desired wheel installation PCD</label><div class="control"><input id="desiredWheelInstallationPCD" name="desiredWheelInstallationPCD" type="text" required></div></div>
-          <div class="field"><label for="desiredWheelInstallationHolePattern">Desired wheel installation hole/stud pattern</label><div class="control"><input id="desiredWheelInstallationHolePattern" name="desiredWheelInstallationHolePattern" type="text" required></div></div>
+          <div class="field"><label for="desiredWheelInstallationPCD">Desired wheel installation PCD</label><div class="control"><input id="desiredWheelInstallationPCD" name="desiredWheelInstallationPCD" type="text"></div></div>
+          <div class="field"><label for="desiredWheelInstallationHolePattern">Desired wheel installation hole/stud pattern</label><div class="control"><input id="desiredWheelInstallationHolePattern" name="desiredWheelInstallationHolePattern" type="text"></div></div>
 
-          <div class="field"><label for="desiredMotorInstallationPCD">Desired motor installation PCD</label><div class="control"><input id="desiredMotorInstallationPCD" name="desiredMotorInstallationPCD" type="text" required></div></div>
-          <div class="field"><label for="desiredMotorInstallationHolePattern">Desired motor installation hole pattern</label><div class="control"><input id="desiredMotorInstallationHolePattern" name="desiredMotorInstallationHolePattern" type="text" required></div></div>
+          <div class="field"><label for="desiredMotorInstallationPCD">Desired motor installation PCD</label><div class="control"><input id="desiredMotorInstallationPCD" name="desiredMotorInstallationPCD" type="text"></div></div>
+          <div class="field"><label for="desiredMotorInstallationHolePattern">Desired motor installation hole pattern</label><div class="control"><input id="desiredMotorInstallationHolePattern" name="desiredMotorInstallationHolePattern" type="text"></div></div>
 
-          <div class="field"><label for="desiredPortType">Desired port type</label><div class="control"><input id="desiredPortType" name="desiredPortType" type="text" required></div></div>
-          <div class="field"><label for="machineDutyCycle">Machine duty cycle</label><div class="control"><input id="machineDutyCycle" name="machineDutyCycle" type="text" required></div></div>
+          <div class="field">
+            <label for="machineDutyCycle">Machine duty cycle</label>
+            <div class="control">
+              <!-- Hidden field holds serialized JSON of the duty table; ID preserved -->
+              <input id="machineDutyCycle" name="machineDutyCycle" type="hidden" />
+              <div style="display:flex;gap:8px;align-items:center">
+                <button type="button" id="editDutyCycleBtn">Edit duty cycle</button>
+                <div id="machineDutyCycleSummary" aria-live="polite">No duty cycle defined.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </fieldset>
 
@@ -135,6 +237,46 @@
         <button type="submit">Submit Application</button>
       </div>
     </form>
+
+    <!-- duty cycle modal -->
+    <div id="dutyModalOverlay" class="modal-overlay" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dutyModalTitle">
+        <h3 id="dutyModalTitle">Machine Duty Cycle — define stages (leave rows empty if not used)</h3>
+        <div class="table-wrap">
+          <table class="duty-table" id="dutyTable">
+            <thead>
+              <tr>
+                <th style="width:40px">Stage</th>
+                <th>Speed (rpm)</th>
+                <th>Differential pressure (bar)</th>
+                <th>Oil temp (°C)</th>
+                <th>Duration %</th>
+                <th>Radial load (N)</th>
+                <th>Axial load (N)</th>
+                <th>Offset (mm)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- 10 rows generated by JS on open; kept empty here for fallback -->
+              <tr><td>1</td><td><input data-row="1" data-col="speed"></td><td><input data-row="1" data-col="diff"></td><td><input data-row="1" data-col="oil"></td><td><input data-row="1" data-col="duration"></td><td><input data-row="1" data-col="radial"></td><td><input data-row="1" data-col="axial"></td><td><input data-row="1" data-col="offset"></td></tr>
+              <tr><td>2</td><td><input data-row="2" data-col="speed"></td><td><input data-row="2" data-col="diff"></td><td><input data-row="2" data-col="oil"></td><td><input data-row="2" data-col="duration"></td><td><input data-row="2" data-col="radial"></td><td><input data-row="2" data-col="axial"></td><td><input data-row="2" data-col="offset"></td></tr>
+              <tr><td>3</td><td><input data-row="3" data-col="speed"></td><td><input data-row="3" data-col="diff"></td><td><input data-row="3" data-col="oil"></td><td><input data-row="3" data-col="duration"></td><td><input data-row="3" data-col="radial"></td><td><input data-row="3" data-col="axial"></td><td><input data-row="3" data-col="offset"></td></tr>
+              <tr><td>4</td><td><input data-row="4" data-col="speed"></td><td><input data-row="4" data-col="diff"></td><td><input data-row="4" data-col="oil"></td><td><input data-row="4" data-col="duration"></td><td><input data-row="4" data-col="radial"></td><td><input data-row="4" data-col="axial"></td><td><input data-row="4" data-col="offset"></td></tr>
+              <tr><td>5</td><td><input data-row="5" data-col="speed"></td><td><input data-row="5" data-col="diff"></td><td><input data-row="5" data-col="oil"></td><td><input data-row="5" data-col="duration"></td><td><input data-row="5" data-col="radial"></td><td><input data-row="5" data-col="axial"></td><td><input data-row="5" data-col="offset"></td></tr>
+              <tr><td>6</td><td><input data-row="6" data-col="speed"></td><td><input data-row="6" data-col="diff"></td><td><input data-row="6" data-col="oil"></td><td><input data-row="6" data-col="duration"></td><td><input data-row="6" data-col="radial"></td><td><input data-row="6" data-col="axial"></td><td><input data-row="6" data-col="offset"></td></tr>
+              <tr><td>7</td><td><input data-row="7" data-col="speed"></td><td><input data-row="7" data-col="diff"></td><td><input data-row="7" data-col="oil"></td><td><input data-row="7" data-col="duration"></td><td><input data-row="7" data-col="radial"></td><td><input data-row="7" data-col="axial"></td><td><input data-row="7" data-col="offset"></td></tr>
+              <tr><td>8</td><td><input data-row="8" data-col="speed"></td><td><input data-row="8" data-col="diff"></td><td><input data-row="8" data-col="oil"></td><td><input data-row="8" data-col="duration"></td><td><input data-row="8" data-col="radial"></td><td><input data-row="8" data-col="axial"></td><td><input data-row="8" data-col="offset"></td></tr>
+              <tr><td>9</td><td><input data-row="9" data-col="speed"></td><td><input data-row="9" data-col="diff"></td><td><input data-row="9" data-col="oil"></td><td><input data-row="9" data-col="duration"></td><td><input data-row="9" data-col="radial"></td><td><input data-row="9" data-col="axial"></td><td><input data-row="9" data-col="offset"></td></tr>
+              <tr><td>10</td><td><input data-row="10" data-col="speed"></td><td><input data-row="10" data-col="diff"></td><td><input data-row="10" data-col="oil"></td><td><input data-row="10" data-col="duration"></td><td><input data-row="10" data-col="radial"></td><td><input data-row="10" data-col="axial"></td><td><input data-row="10" data-col="offset"></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="actions">
+          <button type="button" id="dutySaveBtn">Save</button>
+          <button type="button" id="dutyCancelBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
 
     <!-- reCAPTCHA v3 site key (public) -->
     <script src="https://www.google.com/recaptcha/api.js?render=6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3"></script>
