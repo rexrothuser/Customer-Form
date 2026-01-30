@@ -1,4 +1,4 @@
-/* index.js */
+// index.js
 document.addEventListener('DOMContentLoaded', function () {
   console.log('index.js loaded');
 
@@ -22,10 +22,75 @@ document.addEventListener('DOMContentLoaded', function () {
         appTypeOtherInput.value = '';
       }
     }
-    // initialize
     updateAppTypeOtherVisibility();
     appTypeSelect.addEventListener('change', updateAppTypeOtherVisibility);
   }
+
+  // Duty cycle modal elements
+  const dutyModalOverlay = document.getElementById('dutyModalOverlay');
+  const editDutyCycleBtn = document.getElementById('editDutyCycleBtn');
+  const dutySaveBtn = document.getElementById('dutySaveBtn');
+  const dutyCancelBtn = document.getElementById('dutyCancelBtn');
+  const dutyTable = document.getElementById('dutyTable');
+  const machineDutyCycleInput = document.getElementById('machineDutyCycle');
+  const machineDutyCycleSummary = document.getElementById('machineDutyCycleSummary');
+
+  function openDutyModal() {
+    // Populate table inputs from existing JSON if present
+    let data = [];
+    try {
+      if (machineDutyCycleInput.value) data = JSON.parse(machineDutyCycleInput.value);
+    } catch (e) {
+      console.warn('Existing duty cycle JSON invalid:', e);
+      data = [];
+    }
+    // Fill the table rows (10 rows)
+    for (let row = 1; row <= 10; row++) {
+      const rowData = (data[row - 1]) || {};
+      ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
+        const input = dutyTable.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
+        if (input) input.value = rowData[col] !== undefined ? rowData[col] : '';
+      });
+    }
+    dutyModalOverlay.classList.add('show');
+    dutyModalOverlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeDutyModal() {
+    dutyModalOverlay.classList.remove('show');
+    dutyModalOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  if (editDutyCycleBtn) editDutyCycleBtn.addEventListener('click', openDutyModal);
+  if (dutyCancelBtn) dutyCancelBtn.addEventListener('click', closeDutyModal);
+  if (dutyModalOverlay) dutyModalOverlay.addEventListener('click', function (e) {
+    if (e.target === dutyModalOverlay) closeDutyModal();
+  });
+
+  // Save duty cycle: collect rows which have any non-empty field
+  if (dutySaveBtn) dutySaveBtn.addEventListener('click', function () {
+    const out = [];
+    for (let row = 1; row <= 10; row++) {
+      const rowObj = {};
+      let any = false;
+      ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
+        const input = dutyTable.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
+        if (input && input.value.trim() !== '') {
+          rowObj[col] = input.value.trim();
+          any = true;
+        } else {
+          rowObj[col] = '';
+        }
+      });
+      if (any) {
+        rowObj.stage = row;
+        out.push(rowObj);
+      }
+    }
+    machineDutyCycleInput.value = JSON.stringify(out);
+    machineDutyCycleSummary.textContent = out.length ? `${out.length} stage(s) defined` : 'No duty cycle defined.';
+    closeDutyModal();
+  });
 
   // obtain token with timeout
   function obtainRecaptchaToken(action = 'submit', timeoutMs = 10000) {
@@ -67,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // doPost (defensive)
+  // doPost: posts payload, tolerant and defensive
   function doPost(finalPayload) {
     console.log('Attempting POST to FLOW URL (payload):', JSON.stringify(finalPayload).slice(0,1000));
     if (!FLOW_URL || FLOW_URL.includes('REPLACE_ME')) {
@@ -82,10 +147,12 @@ document.addEventListener('DOMContentLoaded', function () {
       body: JSON.stringify(finalPayload)
     })
     .then(async response => {
+      // Safely read response text and parse if possible
       let text = '';
-      try { text = await response.text(); } catch (e) { console.warn('Failed to read response text:', e); }
+      try { text = await response.text(); } catch (e) { console.warn('Failed to read response text:', e); text = ''; }
       let json = null;
-      try { if (text) json = JSON.parse(text); } catch (e) { console.warn('Flow response not JSON:', e, text); }
+      try { json = text ? JSON.parse(text) : null; } catch (e) { console.warn('Flow response not JSON:', e); }
+
       console.log('Fetch completed, status:', response.status, 'bodyText length:', (typeof text === 'string' ? text.length : 0), 'json:', json);
 
       if (!response.ok) {
@@ -101,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return response;
       }
 
+      // success popup including server response (for debugging)
       const popup = document.createElement('div');
       popup.className = 'popup show';
       popup.innerHTML = `<h2>Form Submitted Successfully</h2>
@@ -131,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (appTypeSelect.value === '__other__') {
         const typed = appTypeOtherInput.value.trim();
         if (!typed) {
-          alert('Please specify the application type in the "Application type (if Other)" field.');
+          alert('Please specify the application type in the "If Other, specify" field.');
           appTypeOtherInput.focus();
           return;
         }
