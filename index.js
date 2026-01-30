@@ -26,6 +26,29 @@ document.addEventListener('DOMContentLoaded', function () {
     appTypeSelect.addEventListener('change', updateAppTypeOtherVisibility);
   }
 
+  // Elements for parking brake logic
+  const parkingSelect = document.getElementById('parkingBrakeRequired');
+  const staticBrakeWrap = document.getElementById('staticBrakeWrap');
+  const staticBrakeInput = document.getElementById('staticBrakeTorque');
+
+  function updateStaticBrakeVisibility() {
+    if (!parkingSelect || !staticBrakeWrap || !staticBrakeInput) return;
+    if (parkingSelect.value === 'Yes') {
+      staticBrakeWrap.style.display = '';
+      // require static torque when parking brake is yes
+      staticBrakeInput.setAttribute('required', 'required');
+    } else {
+      staticBrakeWrap.style.display = 'none';
+      staticBrakeInput.removeAttribute('required');
+      staticBrakeInput.value = '';
+    }
+  }
+  if (parkingSelect) {
+    // initialize on load
+    updateStaticBrakeVisibility();
+    parkingSelect.addEventListener('change', updateStaticBrakeVisibility);
+  }
+
   // Duty cycle modal elements
   const dutyModalOverlay = document.getElementById('dutyModalOverlay');
   const editDutyCycleBtn = document.getElementById('editDutyCycleBtn');
