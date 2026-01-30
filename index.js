@@ -1,4 +1,4 @@
-// index.js
+/* index.js */
 document.addEventListener('DOMContentLoaded', function () {
   console.log('index.js loaded');
 
@@ -26,29 +26,6 @@ document.addEventListener('DOMContentLoaded', function () {
     appTypeSelect.addEventListener('change', updateAppTypeOtherVisibility);
   }
 
-  // Elements for parking brake logic
-  const parkingSelect = document.getElementById('parkingBrakeRequired');
-  const staticBrakeWrap = document.getElementById('staticBrakeWrap');
-  const staticBrakeInput = document.getElementById('staticBrakeTorque');
-
-  function updateStaticBrakeVisibility() {
-    if (!parkingSelect || !staticBrakeWrap || !staticBrakeInput) return;
-    if (parkingSelect.value === 'Yes') {
-      staticBrakeWrap.style.display = '';
-      // require static torque when parking brake is yes
-      staticBrakeInput.setAttribute('required', 'required');
-    } else {
-      staticBrakeWrap.style.display = 'none';
-      staticBrakeInput.removeAttribute('required');
-      staticBrakeInput.value = '';
-    }
-  }
-  if (parkingSelect) {
-    // initialize on load
-    updateStaticBrakeVisibility();
-    parkingSelect.addEventListener('change', updateStaticBrakeVisibility);
-  }
-
   // Duty cycle modal elements
   const dutyModalOverlay = document.getElementById('dutyModalOverlay');
   const editDutyCycleBtn = document.getElementById('editDutyCycleBtn');
@@ -59,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const machineDutyCycleSummary = document.getElementById('machineDutyCycleSummary');
 
   function openDutyModal() {
-    // Populate table inputs from existing JSON if present
     let data = [];
     try {
       if (machineDutyCycleInput.value) data = JSON.parse(machineDutyCycleInput.value);
@@ -67,7 +43,6 @@ document.addEventListener('DOMContentLoaded', function () {
       console.warn('Existing duty cycle JSON invalid:', e);
       data = [];
     }
-    // Fill the table rows (10 rows)
     for (let row = 1; row <= 10; row++) {
       const rowData = (data[row - 1]) || {};
       ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
@@ -90,7 +65,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (e.target === dutyModalOverlay) closeDutyModal();
   });
 
-  // Save duty cycle: collect rows which have any non-empty field
   if (dutySaveBtn) dutySaveBtn.addEventListener('click', function () {
     const out = [];
     for (let row = 1; row <= 10; row++) {
@@ -170,7 +144,6 @@ document.addEventListener('DOMContentLoaded', function () {
       body: JSON.stringify(finalPayload)
     })
     .then(async response => {
-      // Safely read response text and parse if possible
       let text = '';
       try { text = await response.text(); } catch (e) { console.warn('Failed to read response text:', e); text = ''; }
       let json = null;
@@ -191,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return response;
       }
 
-      // success popup including server response (for debugging)
       const popup = document.createElement('div');
       popup.className = 'popup show';
       popup.innerHTML = `<h2>Form Submitted Successfully</h2>
@@ -281,9 +253,8 @@ document.addEventListener('DOMContentLoaded', function () {
       desiredPortType: document.getElementById('desiredPortType')?.value || '',
       machineDutyCycle: document.getElementById('machineDutyCycle')?.value || '',
 
-      brakeRequirements: document.getElementById('brakeRequirements')?.value || '',
-      staticBrakeTorqueReq: document.getElementById('staticBrakeTorque')?.value || '',
-      dynamicBrakeTorqueReq: document.getElementById('dynamicBrakeTorque')?.value || ''
+      brakeRequirements: document.getElementById('brakeRequirements')?.value || ''
+      // static/dynamic torque fields removed intentionally
     };
 
     const submitBtn = form.querySelector('button[type="submit"]');
