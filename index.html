@@ -5,6 +5,12 @@
   <title>Motor Application Form - Compact</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* small helper for the "Other" inputs */
+    .other-input { display: none; }
+    .other-input.show { display: block; }
+    .other-input input { width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 4px; border: 1px solid #c9d8df; }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -20,7 +26,29 @@
       <fieldset>
         <legend>Application & Customer Information</legend>
         <div class="fieldset-grid">
-          <div class="field"><label for="applicationType">Application type</label><div class="control"><input id="applicationType" name="applicationType" type="text" required></div></div>
+          <!-- Application type is now a select with an "Other" option and an extra text input -->
+          <div class="field">
+            <label for="applicationType">Application type</label>
+            <div class="control">
+              <select id="applicationType" name="applicationType" required>
+                <option value="">— Select application type —</option>
+                <option value="Mobile">Mobile</option>
+                <option value="Stationary">Stationary</option>
+                <option value="Offshore">Offshore</option>
+                <option value="Agricultural">Agricultural</option>
+                <option value="__other__">Other (specify)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- hidden text input shown when Other is selected -->
+          <div class="field other-input" id="applicationTypeOtherWrap">
+            <label for="applicationTypeOther">If Other, specify</label>
+            <div class="control">
+              <input id="applicationTypeOther" type="text" placeholder="Type application type" />
+            </div>
+          </div>
+
           <div class="field"><label for="customer">Customer (company)</label><div class="control"><input id="customer" name="customer" type="text" required></div></div>
 
           <div class="field"><label for="date">Date of submission</label><div class="control"><input id="date" name="date" type="date" required></div></div>
