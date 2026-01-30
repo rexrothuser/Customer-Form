@@ -49,34 +49,34 @@
           <div class="field"><label for="machineWeightMax">Total machine weight (max)</label><div class="control"><input id="machineWeightMax" name="machineWeightMax" type="number" required></div></div>
           <div class="field"><label for="machineWeightMin">Total machine weight (min)</label><div class="control"><input id="machineWeightMin" name="machineWeightMin" type="number" required></div></div>
 
-          <div class="field"><label for="reliefPressure">Relief Pressure (bar)</label><div class="control"><input id="reliefPressure" name="reliefPressure" type="number" min="0" required></div></div>
-          <div class="field small"><label></label><div class="control"><span class="error" id="reliefError"></span></div></div>
-
+          <!-- Relief and Charge next to each other (no inline validation) -->
+          <div class="field"><label for="reliefPressure">Relief Pressure (bar)</label><div class="control"><input id="reliefPressure" name="reliefPressure" type="number" required></div></div>
           <div class="field"><label for="chargePressure">Charge Pressure (bar)</label><div class="control"><input id="chargePressure" name="chargePressure" type="number" required></div></div>
+
           <div class="field"><label for="drainPressure">Case/Drain pressure (bar)</label><div class="control"><input id="drainPressure" name="drainPressure" type="number" required></div></div>
-
           <div class="field"><label for="tractiveEffort">Maximum tractive effort required</label><div class="control"><input id="tractiveEffort" name="tractiveEffort" type="text" required></div></div>
+
           <div class="field"><label for="maxSpeedFull">Max. Speed (Full displacement)</label><div class="control"><input id="maxSpeedFull" name="maxSpeedFull" type="number" required></div></div>
-
           <div class="field"><label for="maxSpeedReduced">Max. Speed (Reduced displacement)</label><div class="control"><input id="maxSpeedReduced" name="maxSpeedReduced" type="number" required></div></div>
+
           <div class="field"><label for="flushingRequired">Is flushing required?</label><div class="control"><input id="flushingRequired" name="flushingRequired" type="text" placeholder="Yes / No / Details" required></div></div>
-
           <div class="field"><label for="flushingRate">Flushing rate / info</label><div class="control"><input id="flushingRate" name="flushingRate" type="text" required></div></div>
+
           <div class="field"><label for="fluidManufacturer">Fluid manufacturer and name</label><div class="control"><input id="fluidManufacturer" name="fluidManufacturer" type="text" required></div></div>
-
           <div class="field"><label for="fluidSpecification">Fluid specification / viscosity grade</label><div class="control"><input id="fluidSpecification" name="fluidSpecification" type="text" required></div></div>
+
           <div class="field"><label for="fluidTemperature">Fluid max temperature (°C)</label><div class="control"><input id="fluidTemperature" name="fluidTemperature" type="number" required></div></div>
-
           <div class="field"><label for="paintRequired">Paint required?</label><div class="control"><input id="paintRequired" name="paintRequired" type="text" placeholder="Yes / No / Details" required></div></div>
+
           <div class="field"><label for="speedSensorRequired">Is a speed sensor required?</label><div class="control"><input id="speedSensorRequired" name="speedSensorRequired" type="text" required></div></div>
-
           <div class="field"><label for="sensorPowerSupply">Speed sensor power / details</label><div class="control"><input id="sensorPowerSupply" name="sensorPowerSupply" type="text" required></div></div>
+
           <div class="field"><label for="parkingBrakeRequired">Is a parking brake required?</label><div class="control"><input id="parkingBrakeRequired" name="parkingBrakeRequired" type="text" required></div></div>
-
           <div class="field"><label for="wheelRollerDiameter">Wheel / Roller diameter</label><div class="control"><input id="wheelRollerDiameter" name="wheelRollerDiameter" type="text" required></div></div>
-          <div class="field"><label for="brakeRequirements">Brake requirements</label><div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text" required></div></div>
 
+          <div class="field"><label for="brakeRequirements">Brake requirements</label><div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text" required></div></div>
           <div class="field"><label for="staticBrakeTorque">Static brake torque required per motor</label><div class="control"><input id="staticBrakeTorque" name="staticBrakeTorque" type="text" required></div></div>
+
           <div class="field"><label for="dynamicBrakeTorque">Dynamic brake torque required per motor</label><div class="control"><input id="dynamicBrakeTorque" name="dynamicBrakeTorque" type="text" required></div></div>
         </div>
       </fieldset>
@@ -114,5 +114,3 @@
   </div>
 </body>
 </html>
-
-
