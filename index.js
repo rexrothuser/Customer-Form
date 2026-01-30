@@ -5,17 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const SITE_KEY = '6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3';
   const FLOW_URL = 'https://default0ae51e1907c84e4bbb6d648ee58410.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1f6f13bc2d7a4b508a04bb8b03bc3342/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oL23bmTH8ieQn3nR8OyzhCwOqv-rbWuUt1P8OBVnDWo';
 
-  // Relief pressure inline validation
-  const reliefInput = document.getElementById('reliefPressure');
-  const reliefError = document.getElementById('reliefError');
-  if (reliefInput && reliefError) {
-    reliefInput.addEventListener('input', () => {
-      const value = Number(reliefInput.value);
-      if (value && value < 50) reliefError.textContent = 'Relief pressure too low.';
-      else if (value && value > 450) reliefError.textContent = 'Relief pressure exceeds rating.';
-      else reliefError.textContent = '';
-    });
-  }
+  // Note: relief pressure inline validation removed per request (it's a plain numeric input now).
 
   // obtain token with timeout
   function obtainRecaptchaToken(action = 'submit', timeoutMs = 10000) {
@@ -57,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // doPost: posts payload, tolerates empty response body as success
+  // doPost: posts payload, tolerant and defensive
   function doPost(finalPayload) {
     console.log('Attempting POST to FLOW URL (payload):', JSON.stringify(finalPayload).slice(0,1000));
     if (!FLOW_URL || FLOW_URL.includes('REPLACE_ME')) {
@@ -72,31 +62,40 @@ document.addEventListener('DOMContentLoaded', function () {
       body: JSON.stringify(finalPayload)
     })
     .then(async response => {
-      const text = await response.text();
+      // Safely read response text and parse if possible
+      let text = '';
+      try {
+        text = await response.text();
+      } catch (e) {
+        console.warn('Failed to read response text:', e);
+        text = '';
+      }
+
       let json = null;
       try { json = text ? JSON.parse(text) : null; } catch (e) { console.warn('Flow response not JSON:', e); }
-      console.log('Fetch completed, status:', response.status, 'bodyText length:', (text || '').length, 'json:', json);
+
+      console.log('Fetch completed, status:', response.status, 'bodyText length:', (typeof text === 'string' ? text.length : 0), 'json:', json);
 
       if (!response.ok) {
         const message = (json && json.message) ? json.message : `Server error ${response.status}`;
-        alert('Submission failed: ' + message);
+        alert('Submission failed: ' + message + '\n\nServer response: ' + (text || response.status));
         throw new Error(message || 'flow_response_not_ok');
       }
 
-      // if server returned no body, treat as success; if JSON returned, respect success flag
       const ok = (json === null) ? true : (('success' in json) ? json.success : true);
       if (!ok) {
         const message = (json && json.message) ? json.message : 'Verification failed';
-        alert('Submission rejected: ' + message);
+        alert('Submission rejected: ' + message + '\n\nServer response: ' + (text || ''));
         return response;
       }
 
-      // success popup
+      // success popup showing server response for debugging
       const popup = document.createElement('div');
       popup.className = 'popup show';
-      popup.innerHTML = '<h2>Form Submitted Successfully</h2>' +
-        '<p>Thank you for your submission, ' + (finalPayload.customer || 'Customer') + '.</p>' +
-        '<button id="closePopup">Close</button>';
+      popup.innerHTML = `<h2>Form Submitted Successfully</h2>
+        <p>Thank you for your submission, ${finalPayload.customer || 'Customer'}.</p>
+        <pre style="white-space:pre-wrap;max-height:200px;overflow:auto;">${text || ''}</pre>
+        <button id="closePopup">Close</button>`;
       document.body.appendChild(popup);
       document.getElementById('closePopup').addEventListener('click', () => popup.remove());
       return response;
