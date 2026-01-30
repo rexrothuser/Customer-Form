@@ -40,14 +40,14 @@ document.addEventListener('DOMContentLoaded', function () {
   // --- Compact Wheel Loader template (8 steps)
   const baseSpeed = 500; // reference speed (used to compute speed scaling)
   const compactWheelLoaderTemplate = [
-    { speedBase: 10, diff: 200, oil: null, duration: 5, radialFactor: 1.35, axialFactor: 0.398648, offset: 0 },
-    { speedBase: 10, diff: 200, oil: null, duration: 5, radialFactor: 1.35, axialFactor: -0.398648, offset: 0 },
-    { speedBase: 25, diff: 150, oil: null, duration: 13.25, radialFactor: 1.08, axialFactor: 0.18593, offset: 0 },
-    { speedBase: 25, diff: 150, oil: null, duration: 13.25, radialFactor: 1.08, axialFactor: -0.18593, offset: 0 },
-    { speedBase: 60, diff: 100, oil: null, duration: 20, radialFactor: 0.6, axialFactor: 0.0, offset: 0 },
-    { speedBase: 80, diff: 75,  oil: null, duration: 20, radialFactor: 0.518, axialFactor: 0.0, offset: 0 },
-    { speedBase: 105,diff: 55,  oil: null, duration: 20, radialFactor: 0.45, axialFactor: 0.0, offset: 0 },
-    { speedBase: 10, diff: 400, oil: null, duration: 3.5, radialFactor: 1.35, axialFactor: 0.398648, offset: 0 }
+    { speedBase: 10, diff: 200, oil: 70, duration: 5, radialFactor: 1.35, axialFactor: 0.398648, offset: 0 },
+    { speedBase: 10, diff: 200, oil: 70, duration: 5, radialFactor: 1.35, axialFactor: -0.398648, offset: 0 },
+    { speedBase: 25, diff: 150, oil: 65, duration: 13.25, radialFactor: 1.08, axialFactor: 0.18593, offset: 0 },
+    { speedBase: 25, diff: 150, oil: 65, duration: 13.25, radialFactor: 1.08, axialFactor: -0.18593, offset: 0 },
+    { speedBase: 60, diff: 100, oil: 65, duration: 20, radialFactor: 0.6, axialFactor: 0.0, offset: 0 },
+    { speedBase: 80, diff: 75,  oil: 60, duration: 20, radialFactor: 0.518, axialFactor: 0.0, offset: 0 },
+    { speedBase: 105,diff: 55,  oil: 60, duration: 20, radialFactor: 0.45, axialFactor: 0.0, offset: 0 },
+    { speedBase: 10, diff: 400, oil: 80, duration: 3.5, radialFactor: 1.35, axialFactor: 0.0, offset: 0 }
   ];
 
   function chooseWeightForStep(stepIndex, maxWeight, minWeight) {
@@ -435,3 +435,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
   });
 });
+
