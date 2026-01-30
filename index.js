@@ -1,3 +1,4 @@
+
 // index.js
 document.addEventListener('DOMContentLoaded', function () {
   console.log('index.js loaded');
@@ -37,21 +38,18 @@ document.addEventListener('DOMContentLoaded', function () {
   const autoFillNote = document.getElementById('autoFillNote');
 
   // --- Compact Wheel Loader template (8 steps)
-  // Each step defines: speedBase, diff, oil (nullable), duration (%), radialFactor, axialFactor, offset (mm)
-  // Factors are applied to the chosen weight for that step.
   const baseSpeed = 500; // reference speed (used to compute speed scaling)
   const compactWheelLoaderTemplate = [
     { speedBase: 10, diff: 200, oil: null, duration: 5, radialFactor: 1.35, axialFactor: 0.398648, offset: 0 },
     { speedBase: 10, diff: 200, oil: null, duration: 5, radialFactor: 1.35, axialFactor: -0.398648, offset: 0 },
     { speedBase: 25, diff: 150, oil: null, duration: 13.25, radialFactor: 1.08, axialFactor: 0.18593, offset: 0 },
     { speedBase: 25, diff: 150, oil: null, duration: 13.25, radialFactor: 1.08, axialFactor: -0.18593, offset: 0 },
-    { speedBase: 60, diff: 100, oil: null, duration: 20, radialFactor: 0.6, axialFactor: 0.0, offset: 0 }, // step5 uses 0.6 * maxWeight
-    { speedBase: 80, diff: 75,  oil: null, duration: 20, radialFactor: 0.518, axialFactor: 0.0, offset: 0 }, // uses minWeight
-    { speedBase: 105,diff: 55,  oil: null, duration: 20, radialFactor: 0.45, axialFactor: 0.0, offset: 0 }, // uses minWeight
+    { speedBase: 60, diff: 100, oil: null, duration: 20, radialFactor: 0.6, axialFactor: 0.0, offset: 0 },
+    { speedBase: 80, diff: 75,  oil: null, duration: 20, radialFactor: 0.518, axialFactor: 0.0, offset: 0 },
+    { speedBase: 105,diff: 55,  oil: null, duration: 20, radialFactor: 0.45, axialFactor: 0.0, offset: 0 },
     { speedBase: 10, diff: 400, oil: null, duration: 3.5, radialFactor: 1.35, axialFactor: 0.398648, offset: 0 }
   ];
 
-  // choose weight for each step per your rules (stepIndex 1..8)
   function chooseWeightForStep(stepIndex, maxWeight, minWeight) {
     if ([1,2,8].includes(stepIndex)) return maxWeight;
     if ([3,4].includes(stepIndex)) return (((Number(maxWeight) || 0) - (Number(minWeight) || 0)) * 0.8) + (Number(minWeight) || 0);
@@ -60,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function () {
     return maxWeight;
   }
 
-  // apply template into table with scaling rules
   function applyTemplateToTable(template, maxWeight, minWeight, maxSpeedFull) {
     const speedFactor = (Number(maxSpeedFull) > 0) ? (Number(maxSpeedFull) / baseSpeed) : 1;
 
@@ -74,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!stepTemplate) {
           input.value = '';
-          continue;
+          return;
         }
 
         if (col === 'speed') {
@@ -103,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function openDutyModal() {
-    // Populate table inputs from existing JSON if present
+    console.log('openDutyModal() called'); // debug help
     let data = [];
     try {
       if (machineDutyCycleInput.value) data = JSON.parse(machineDutyCycleInput.value);
@@ -113,7 +110,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (data && data.length) {
-      // existing saved table -> populate
       for (let row = 1; row <= 10; row++) {
         const rowData = (data[row - 1]) || {};
         ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
@@ -123,11 +119,9 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       autoFillNote.style.display = 'none';
     } else {
-      // no saved data -> consider auto-fill for Compact Wheel Loader only
       autoFillNote.style.display = 'none';
       const appType = (appTypeSelect ? appTypeSelect.value : '') || '';
       if (appType === 'Compact Wheel Loader') {
-        // read weights and speed
         const weightMax = Number(document.getElementById('machineWeightMax')?.value) || 5000;
         const weightMin = Number(document.getElementById('machineWeightMin')?.value) || Math.round(weightMax * 0.6);
         const speedMax = Number(document.getElementById('maxSpeedFull')?.value) || 500;
@@ -139,9 +133,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // confirmation
         const ok = window.confirm('The duty cycle has been automatically filled based on the selected Application type. Does this automatically filled info look reasonable? Click OK to accept (you can still edit), or Cancel to review/edit.');
-        // regardless of OK/Cancel we open modal and let user edit; the note explains the auto-fill
+        // leave table editable either way
       } else {
-        // other application types -> blank table
         for (let row = 1; row <= 10; row++) {
           ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
             const input = dutyTable.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
@@ -161,7 +154,19 @@ document.addEventListener('DOMContentLoaded', function () {
     autoFillNote.style.display = 'none';
   }
 
-  if (editDutyCycleBtn) editDutyCycleBtn.addEventListener('click', openDutyModal);
+  // attach listeners (direct and delegated fallback)
+  if (editDutyCycleBtn) {
+    try { editDutyCycleBtn.addEventListener('click', openDutyModal); }
+    catch (e) { console.warn('Direct duty button binding failed', e); }
+  }
+  // Delegated click fallback - ensures the button works even if direct binding failed
+  document.addEventListener('click', function (ev) {
+    if (!ev.target) return;
+    if (ev.target.id === 'editDutyCycleBtn' || ev.target.closest && ev.target.closest('#editDutyCycleBtn')) {
+      openDutyModal();
+    }
+  });
+
   if (dutyCancelBtn) dutyCancelBtn.addEventListener('click', closeDutyModal);
   if (dutyModalOverlay) dutyModalOverlay.addEventListener('click', function (e) {
     if (e.target === dutyModalOverlay) closeDutyModal();
@@ -186,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function () {
         out.push(rowObj);
       }
     }
-    // Save JSON string for UI/storage, but payload will send parsed array (see submit)
     machineDutyCycleInput.value = JSON.stringify(out);
     machineDutyCycleSummary.textContent = out.length ? `${out.length} stage(s) defined` : 'No duty cycle defined.';
     closeDutyModal();
@@ -390,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function () {
           brakeRequirements: document.getElementById('brakeRequirements')?.value || '',
 
           additionalInformation: document.getElementById('additionalInformation')?.value || '',
-          attachments: filesArray || [] // each item: { name, type, dataUrl }
+          attachments: filesArray || []
         };
 
         // Now get recaptcha token and post
