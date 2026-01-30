@@ -5,7 +5,27 @@ document.addEventListener('DOMContentLoaded', function () {
   const SITE_KEY = '6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3';
   const FLOW_URL = 'https://default0ae51e1907c84e4bbb6d648ee58410.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1f6f13bc2d7a4b508a04bb8b03bc3342/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oL23bmTH8ieQn3nR8OyzhCwOqv-rbWuUt1P8OBVnDWo';
 
-  // Note: relief pressure inline validation removed per request (it's a plain numeric input now).
+  // Wire up Application type 'Other' behavior
+  const appTypeSelect = document.getElementById('applicationType');
+  const appTypeOtherWrap = document.getElementById('applicationTypeOtherWrap');
+  const appTypeOtherInput = document.getElementById('applicationTypeOther');
+
+  if (appTypeSelect && appTypeOtherWrap && appTypeOtherInput) {
+    function updateAppTypeOtherVisibility() {
+      if (appTypeSelect.value === '__other__') {
+        appTypeOtherWrap.classList.add('show');
+        appTypeOtherWrap.style.display = ''; // allow CSS rules to show
+        appTypeOtherInput.focus();
+      } else {
+        appTypeOtherWrap.classList.remove('show');
+        appTypeOtherWrap.style.display = 'none';
+        appTypeOtherInput.value = '';
+      }
+    }
+    // initialize visibility on load
+    updateAppTypeOtherVisibility();
+    appTypeSelect.addEventListener('change', updateAppTypeOtherVisibility);
+  }
 
   // obtain token with timeout
   function obtainRecaptchaToken(action = 'submit', timeoutMs = 10000) {
@@ -114,9 +134,21 @@ document.addEventListener('DOMContentLoaded', function () {
     e.preventDefault();
     console.log('submit handler fired');
 
+    // applicationType: use Other input when selected
+    let applicationTypeValue = '';
+    if (appTypeSelect) {
+      if (appTypeSelect.value === '__other__') {
+        applicationTypeValue = (appTypeOtherInput && appTypeOtherInput.value.trim()) ? appTypeOtherInput.value.trim() : '';
+      } else {
+        applicationTypeValue = appTypeSelect.value;
+      }
+    } else {
+      applicationTypeValue = document.getElementById('applicationType')?.value || '';
+    }
+
     // gather payload (IDs match inputs in the HTML)
     const payload = {
-      applicationType: document.getElementById('applicationType')?.value || '',
+      applicationType: applicationTypeValue || '',
       customer: document.getElementById('customer')?.value || '',
       date: document.getElementById('date')?.value || '',
       machineType: document.getElementById('machineType')?.value || '',
