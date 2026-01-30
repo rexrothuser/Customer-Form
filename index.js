@@ -1,11 +1,11 @@
-// index.js (complete)
+// index.js (complete — updated radial/axial/speed rules)
 document.addEventListener('DOMContentLoaded', function () {
   console.log('index.js loaded');
 
   const SITE_KEY = '6LdIBVksAAAAADS_4esakyQRplz0hq72OcQhBWF3';
   const FLOW_URL = 'https://default0ae51e1907c84e4bbb6d648ee58410.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1f6f13bc2d7a4b508a04bb8b03bc3342/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oL23bmTH8ieQn3nR8OyzhCwOqv-rbWuUt1P8OBVnDWo';
 
-  // Elements for Application type + Other
+  // DOM elements for application type "Other" handling
   const appTypeSelect = document.getElementById('applicationType');
   const appTypeOtherWrap = document.getElementById('applicationTypeOtherWrap');
   const appTypeOtherInput = document.getElementById('applicationTypeOther');
@@ -37,11 +37,11 @@ document.addEventListener('DOMContentLoaded', function () {
   const autoFillNote = document.getElementById('autoFillNote');
 
   // --- Compact Wheel Loader template (8 steps) ---
-  // speedBase: baseline speed value (scaled by maxSpeedFull/baseSpeed)
-  // diff: delta P (bar)
-  // duration: percent/time entry
-  // offset: mm (if used)
-  const baseSpeed = 500; // reference speed used for scaling speeds (edit if needed)
+  // speedBase: baseline speed value (scaled by maxSpeed/full or reduced)
+  // diff: delta P (bar) baseline (may be doubled for steps 5-7 when reduced speed used)
+  // duration: percent/time
+  // offset: mm (can stay 0)
+  const baseSpeed = 500; // reference for scaling speeds
   const compactWheelLoaderTemplate = [
     { speedBase: 10, diff: 200, oil: null, duration: 5, offset: 0 },
     { speedBase: 10, diff: 200, oil: null, duration: 5, offset: 0 },
@@ -53,26 +53,43 @@ document.addEventListener('DOMContentLoaded', function () {
     { speedBase: 10, diff: 400, oil: null, duration: 3.5, offset: 0 }
   ];
 
-  // Default radial force if no max weight provided (N)
-  const defaultBaseRadial = 6750;
+  // Defaults and scaling factors
+  const defaultBaseRadial = 6750; // N fallback if no max weight is provided
 
-  // radial scaling factors for steps 3..7 (edit these as you want)
+  // radial scaling factors for steps 3..7 (you can tweak these exact numbers)
   const radialScale = {
-    3: 0.80, // step 3 factor (example)
-    4: 0.80, // step 4 factor
-    5: 0.60, // step 5 factor
-    6: 0.52, // step 6 factor
-    7: 0.45  // step 7 factor
+    3: 0.80, // step 3
+    4: 0.80, // step 4
+    5: 0.60, // step 5
+    6: 0.52, // step 6
+    7: 0.45  // step 7
   };
 
-  // Compute the base radial force (N) from a machine weight (kg)
+  // Helper: compute baseRadial from weight in kg, using g=9.81 and dividing by 4
   function computeBaseRadialFromWeight(maxWeightKg) {
     if (!maxWeightKg || Number(maxWeightKg) <= 0) return defaultBaseRadial;
     const g = 9.81;
     return (Number(maxWeightKg) * g) / 4;
   }
 
-  // choose weight for each step per your original rules (kept for fallback when needed)
+  // Convert speed input (could be km/h if <50) to RPM using wheelDiameter in mm (default 750 mm)
+  function convertSpeedToRPM(inputSpeed, wheelDiameterMm = 750) {
+    const s = Number(inputSpeed);
+    if (!s || isNaN(s) || s <= 0) return 0;
+    // If below 50 assume km/h
+    if (s < 50) {
+      const speedMps = s / 3.6; // km/h -> m/s
+      const circumference = Math.PI * (Number(wheelDiameterMm) / 1000); // meters
+      if (circumference <= 0) return 0;
+      const revPerSec = speedMps / circumference;
+      return Math.round(revPerSec * 60);
+    } else {
+      // assume already RPM
+      return Math.round(s);
+    }
+  }
+
+  // choose weight for each step (kept for completeness) - not used directly in radial now
   function chooseWeightForStep(stepIndex, maxWeight, minWeight) {
     if ([1,2,8].includes(stepIndex)) return maxWeight;
     if ([3,4].includes(stepIndex)) return (((Number(maxWeight) || 0) - (Number(minWeight) || 0)) * 0.8) + (Number(minWeight) || 0);
@@ -81,23 +98,45 @@ document.addEventListener('DOMContentLoaded', function () {
     return maxWeight;
   }
 
-  // apply template into table with corrected radial/axial scaling rules
-  function applyTemplateToTable(template, maxWeightKg, minWeightKg, maxSpeedFull) {
-    const speedFactor = (Number(maxSpeedFull) > 0) ? (Number(maxSpeedFull) / baseSpeed) : 1;
+  // Apply template into duty table with your rules
+  // - ensures steps 5,6,7 radial >= minBaseRadial
+  // - speed scaling rules using either reduced or full displacement and unit conversion
+  // - double deltaP for steps 5,6,7 when reduced displacement provided
+  function applyTemplateToTable(template, maxWeightKg, minWeightKg, fullSpeedInput, reducedSpeedInput, wheelDiameterInput) {
+    // Determine maxSpeedRPM:
+    // If reducedSpeedInput provided (>0) -> use that as max speed (convert units if needed)
+    // Else use fullSpeedInput
+    const wheelDiameter = Number(wheelDiameterInput) > 0 ? Number(wheelDiameterInput) : 750;
+    const reducedProvided = Number(reducedSpeedInput) && Number(reducedSpeedInput) > 0;
+    const speedSourceValue = reducedProvided ? Number(reducedSpeedInput) : Number(fullSpeedInput);
+    const maxSpeedRPM = convertSpeedToRPM(speedSourceValue, wheelDiameter);
+    console.log('applyTemplateToTable: using ' + (reducedProvided ? 'reduced' : 'full') + ' speed input -> maxSpeedRPM =', maxSpeedRPM, '(wheelDiameter mm =', wheelDiameter, ')');
 
-    // compute baseRadial (N) from maxWeightKg or fallback default
+    // compute baseRadial and minBaseRadial in Newtons
     const baseRadial = computeBaseRadialFromWeight(maxWeightKg);
-    console.log('applyTemplateToTable: baseRadial (N) =', baseRadial, ' (from maxWeightKg=', maxWeightKg, ')');
+    const minBaseRadial = computeBaseRadialFromWeight(minWeightKg);
+    console.log('applyTemplateToTable: baseRadial (N)=', baseRadial, ' minBaseRadial (N)=', minBaseRadial);
 
-    // axial rules per your request
-    const step1Axial = Math.round(0.30 * baseRadial);    // step 1 axial (+)
-    const step2Axial = Math.round(-0.30 * baseRadial);   // step 2 axial (-)
-    const step3Axial = Math.round(0.75 * step1Axial);    // 75% of step1
-    const step4Axial = Math.round(0.75 * step2Axial);    // 75% of step2 (negative)
+    // axial computation helpers
+    const step1Axial = Math.round(0.30 * baseRadial);
+    const step2Axial = Math.round(-0.30 * baseRadial);
+    const step3Axial = Math.round(0.75 * step1Axial);
+    const step4Axial = Math.round(0.75 * step2Axial);
+
+    // per-step speed percentages of max
+    const speedPercents = {
+      1: 0.10,
+      2: 0.10,
+      3: 0.25,
+      4: 0.25,
+      5: 0.60,
+      6: 0.80,
+      7: 1.00,
+      8: 0.10
+    };
 
     for (let row = 1; row <= 10; row++) {
       const stepTemplate = template[row - 1] || null;
-
       ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
         const input = dutyTable.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
         if (!input) return;
@@ -108,9 +147,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (col === 'speed') {
-          input.value = Math.round((Number(stepTemplate.speedBase) || 0) * speedFactor).toString();
+          const pct = speedPercents[row] !== undefined ? speedPercents[row] : 0;
+          const speedVal = Math.round(maxSpeedRPM * pct);
+          input.value = speedVal ? String(speedVal) : '';
         } else if (col === 'diff') {
-          input.value = (stepTemplate.diff !== null && stepTemplate.diff !== undefined) ? String(stepTemplate.diff) : '';
+          // base diff from template; special rule: if reducedProvided -> double DeltaP for steps 5,6,7 only
+          let diffVal = (stepTemplate.diff !== null && stepTemplate.diff !== undefined) ? Number(stepTemplate.diff) : '';
+          if (reducedProvided && [5,6,7].includes(row) && diffVal !== '') {
+            diffVal = diffVal * 2;
+          }
+          input.value = (diffVal !== '' && diffVal !== null && !isNaN(diffVal)) ? String(Math.round(diffVal)) : '';
         } else if (col === 'oil') {
           input.value = (stepTemplate.oil !== null && stepTemplate.oil !== undefined) ? String(stepTemplate.oil) : '';
         } else if (col === 'duration') {
@@ -118,12 +164,14 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (col === 'radial') {
           let radialVal = '';
           if ([1,2,8].includes(row)) {
-            // Steps 1,2,8 use baseRadial directly
             radialVal = Math.round(baseRadial);
           } else if ([3,4,5,6,7].includes(row)) {
-            // Steps 3..7 use scale factors of baseRadial
-            const factor = (radialScale[row] !== undefined) ? Number(radialScale[row]) : 1;
+            const factor = radialScale[row] !== undefined ? Number(radialScale[row]) : 1;
             radialVal = Math.round(baseRadial * factor);
+            // ensure steps 5,6,7 radialVal >= minBaseRadial
+            if ([5,6,7].includes(row) && minBaseRadial && radialVal < Math.round(minBaseRadial)) {
+              radialVal = Math.round(minBaseRadial);
+            }
           } else {
             radialVal = '';
           }
@@ -134,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
           else if (row === 2) axialVal = step2Axial;
           else if (row === 3) axialVal = step3Axial;
           else if (row === 4) axialVal = step4Axial;
-          else axialVal = ''; // steps 5-8 left empty unless you set them in template
+          else axialVal = ''; // steps 5..8 currently empty unless you configure them
           input.value = (axialVal !== '' && !isNaN(axialVal)) ? String(axialVal) : '';
         } else if (col === 'offset') {
           input.value = stepTemplate.offset ? String(stepTemplate.offset) : '';
@@ -168,12 +216,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (appType === 'Compact Wheel Loader') {
         const weightMax = Number(document.getElementById('machineWeightMax')?.value) || 0;
         const weightMin = Number(document.getElementById('machineWeightMin')?.value) || 0;
-        const speedMax = Number(document.getElementById('maxSpeedFull')?.value) || 0;
+        const fullSpeedInput = Number(document.getElementById('maxSpeedFull')?.value) || 0;
+        const reducedSpeedInput = Number(document.getElementById('maxSpeedReduced')?.value) || 0;
+        const wheelDiameterInput = Number(document.getElementById('wheelRollerDiameter')?.value) || 750;
 
-        const message = 'The duty cycle will be automatically filled based on "Compact Wheel Loader" and the provided machine weights/speed. This uses baseRadial = (MaxWeight * 9.81) / 4 for steps 1,2,8, and scaled values for steps 3–7; axial forces derived per your rules. Click OK to auto-fill (you can then edit), or Cancel to leave the table blank.';
+        const message = 'The duty cycle will be automatically filled based on "Compact Wheel Loader" using the machine weights and speeds provided. OK to auto-fill (you can then edit), Cancel to leave blank.';
         const userConfirmed = window.confirm(message);
         if (userConfirmed) {
-          applyTemplateToTable(compactWheelLoaderTemplate, weightMax, weightMin, speedMax);
+          applyTemplateToTable(compactWheelLoaderTemplate, weightMax, weightMin, fullSpeedInput, reducedSpeedInput, wheelDiameterInput);
         } else {
           for (let row = 1; row <= 10; row++) {
             ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
@@ -201,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
     dutyModalOverlay.setAttribute('aria-hidden', 'true');
   }
 
-  // ensure button works (direct + delegated)
+  // ensure duty button works
   if (editDutyCycleBtn) {
     try { editDutyCycleBtn.addEventListener('click', openDutyModal); }
     catch (e) { console.warn('Direct duty button binding failed', e); }
