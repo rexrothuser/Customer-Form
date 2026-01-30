@@ -1,4 +1,4 @@
-/* index.js */
+// index.js
 document.addEventListener('DOMContentLoaded', function () {
   console.log('index.js loaded');
 
@@ -34,8 +34,57 @@ document.addEventListener('DOMContentLoaded', function () {
   const dutyTable = document.getElementById('dutyTable');
   const machineDutyCycleInput = document.getElementById('machineDutyCycle');
   const machineDutyCycleSummary = document.getElementById('machineDutyCycleSummary');
+  const autoFillNote = document.getElementById('autoFillNote');
+
+  // A small built-in 8-stage template for Compact Wheel Loader (example values)
+  const compactWheelLoaderTemplate = [
+    { speed: '300', diff: '5', oil: '50', duration: '10', radial: '2000', axial: '500', offset: '10' },
+    { speed: '400', diff: '6', oil: '55', duration: '15', radial: '2500', axial: '600', offset: '12' },
+    { speed: '500', diff: '7', oil: '60', duration: '10', radial: '3000', axial: '700', offset: '14' },
+    { speed: '600', diff: '8', oil: '65', duration: '20', radial: '3500', axial: '800', offset: '16' },
+    { speed: '400', diff: '6', oil: '55', duration: '15', radial: '2500', axial: '600', offset: '12' },
+    { speed: '300', diff: '5', oil: '50', duration: '10', radial: '2000', axial: '500', offset: '10' },
+    { speed: '200', diff: '4', oil: '45', duration: '10', radial: '1500', axial: '400', offset: '8' },
+    { speed: '100', diff: '3', oil: '40', duration: '10', radial: '1000', axial: '300', offset: '6' }
+  ];
+
+  function applyTemplateToTable(template, weightFactor = 1, speedFactor = 1) {
+    // Fill up to 10 rows; template length may be 8
+    for (let row = 1; row <= 10; row++) {
+      const inputCols = ['speed','diff','oil','duration','radial','axial','offset'];
+      const rowInputs = {};
+      const src = template[row - 1] || null;
+      inputCols.forEach(col => {
+        const input = dutyTable.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
+        if (!input) return;
+        if (src) {
+          let val = src[col] !== undefined ? src[col] : '';
+          // scale numeric fields sensibly
+          if (['radial','axial','offset'].includes(col)) {
+            const n = Number(val) || 0;
+            val = Math.round(n * weightFactor).toString();
+          } else if (col === 'speed') {
+            const n = Number(val) || 0;
+            val = Math.round(n * speedFactor).toString();
+          } else {
+            // diff/oil/duration: small adjustments by average
+            if (col === 'diff' || col === 'oil') {
+              const n = Number(val) || 0;
+              val = (Math.round(n * ( (weightFactor + speedFactor) / 2 ))).toString();
+            } else {
+              // duration left as-is
+            }
+          }
+          input.value = val;
+        } else {
+          input.value = '';
+        }
+      });
+    }
+  }
 
   function openDutyModal() {
+    // Populate table inputs from existing JSON if present
     let data = [];
     try {
       if (machineDutyCycleInput.value) data = JSON.parse(machineDutyCycleInput.value);
@@ -43,13 +92,53 @@ document.addEventListener('DOMContentLoaded', function () {
       console.warn('Existing duty cycle JSON invalid:', e);
       data = [];
     }
-    for (let row = 1; row <= 10; row++) {
-      const rowData = (data[row - 1]) || {};
-      ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
-        const input = dutyTable.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
-        if (input) input.value = rowData[col] !== undefined ? rowData[col] : '';
-      });
+
+    // If there is existing saved data, populate table with it
+    if (data && data.length) {
+      for (let row = 1; row <= 10; row++) {
+        const rowData = (data[row - 1]) || {};
+        ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
+          const input = dutyTable.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
+          if (input) input.value = rowData[col] !== undefined ? rowData[col] : '';
+        });
+      }
+      autoFillNote.style.display = 'none';
+    } else {
+      // No existing duty cycle: consider auto-fill based on applicationType
+      autoFillNote.style.display = 'none';
+      const appType = (appTypeSelect ? appTypeSelect.value : '') || '';
+      if (appType === 'Compact Wheel Loader') {
+        // compute scale factors based on machineWeightMax and maxSpeedFull
+        const weightMax = Number(document.getElementById('machineWeightMax')?.value) || 5000; // default
+        const speedMax = Number(document.getElementById('maxSpeedFull')?.value) || 500; // default
+
+        const baseWeight = 5000;
+        const baseSpeed = 500;
+
+        const weightFactor = Math.max(0.5, weightMax / baseWeight); // avoid tiny scale
+        const speedFactor = Math.max(0.5, speedMax / baseSpeed);
+
+        // Apply template scaled
+        applyTemplateToTable(compactWheelLoaderTemplate, weightFactor, speedFactor);
+
+        // notify user, allow edit after confirm
+        autoFillNote.textContent = 'Auto-filled duty cycle based on Application type "Compact Wheel Loader". You can edit values if needed.';
+        autoFillNote.style.display = 'block';
+
+        // confirmation dialog
+        const ok = window.confirm('The duty cycle has been automatically filled based on the selected Application type. Does this automatically filled info look reasonable? Click OK to accept (you can still edit), or Cancel to review/edit.');
+        // if user cancels, still open modal and let them edit — nothing else to do.
+      } else {
+        // No auto-fill: clear table inputs
+        for (let row = 1; row <= 10; row++) {
+          ['speed','diff','oil','duration','radial','axial','offset'].forEach(col => {
+            const input = dutyTable.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
+            if (input) input.value = '';
+          });
+        }
+      }
     }
+
     dutyModalOverlay.classList.add('show');
     dutyModalOverlay.setAttribute('aria-hidden', 'false');
   }
@@ -57,6 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function closeDutyModal() {
     dutyModalOverlay.classList.remove('show');
     dutyModalOverlay.setAttribute('aria-hidden', 'true');
+    autoFillNote.style.display = 'none';
   }
 
   if (editDutyCycleBtn) editDutyCycleBtn.addEventListener('click', openDutyModal);
@@ -206,11 +296,10 @@ document.addEventListener('DOMContentLoaded', function () {
       applicationTypeValue = document.getElementById('applicationType')?.value || '';
     }
 
-    // gather payload (IDs match inputs in the HTML)
+    // gather payload (IDs match inputs in the HTML) - date field removed
     const payload = {
       applicationType: applicationTypeValue || '',
       customer: document.getElementById('customer')?.value || '',
-      date: document.getElementById('date')?.value || '',
       machineType: document.getElementById('machineType')?.value || '',
       machineName: document.getElementById('machineName')?.value || '',
       customerContact: document.getElementById('customerContact')?.value || '',
@@ -254,7 +343,6 @@ document.addEventListener('DOMContentLoaded', function () {
       machineDutyCycle: document.getElementById('machineDutyCycle')?.value || '',
 
       brakeRequirements: document.getElementById('brakeRequirements')?.value || ''
-      // static/dynamic torque fields removed intentionally
     };
 
     const submitBtn = form.querySelector('button[type="submit"]');
