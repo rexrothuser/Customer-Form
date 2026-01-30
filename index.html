@@ -6,10 +6,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css">
   <style>
-    /* small helper for the "Other" inputs */
+    /* ensure the "Other" input uses same layout as other .field elements when shown */
     .other-input { display: none; }
-    .other-input.show { display: block; }
-    .other-input input { width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 4px; border: 1px solid #c9d8df; }
+    .other-input.show { display: flex; align-items: center; gap: 8px; min-height: 34px; }
+    .other-input label { flex: 0 0 42%; margin: 0; font-size:13px; color:#123; font-weight:600; }
+    .other-input .control { flex: 1 1 auto; min-width:0; }
+    .other-input .control input { width:100%; box-sizing:border-box; padding:6px 8px; border:1px solid #c9d8df; border-radius:4px; height:32px; }
   </style>
 </head>
 <body>
@@ -26,7 +28,7 @@
       <fieldset>
         <legend>Application & Customer Information</legend>
         <div class="fieldset-grid">
-          <!-- Application type is now a select with an "Other" option and an extra text input -->
+          <!-- Application type select (includes Other). ID preserved. -->
           <div class="field">
             <label for="applicationType">Application type</label>
             <div class="control">
@@ -41,11 +43,11 @@
             </div>
           </div>
 
-          <!-- hidden text input shown when Other is selected -->
-          <div class="field other-input" id="applicationTypeOtherWrap">
-            <label for="applicationTypeOther">If Other, specify</label>
+          <!-- Separate text input shown only when Other selected -->
+          <div class="field other-input" id="applicationTypeOtherWrap" aria-hidden="true">
+            <label for="applicationTypeOther">Application type (if Other)</label>
             <div class="control">
-              <input id="applicationTypeOther" type="text" placeholder="Type application type" />
+              <input id="applicationTypeOther" name="applicationTypeOther" type="text" placeholder="Type application type">
             </div>
           </div>
 
