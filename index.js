@@ -204,7 +204,7 @@ Max speed (full/reduced): ${fullSpeed}/${reducedSpeed || 'n/a'}
 This will automatically fill the duty cycle. You can edit any values afterwards if required.
 Automatically generated duty cycle is based on analysis of previous machines in similar applications.
 
-Proceed to auto-fill?`;
+Please press OK to use auto-filled duty cycle. After reviewing, please remember to save. Alternatively, press cancel for an empty duty cycle.`;
 
         if (window.confirm(message)) {
           applyTemplateToTable(compactWheelLoaderTemplate, weightMax, weightMin, fullSpeed, reducedSpeed, wheelDia);
@@ -443,4 +443,5 @@ Proceed to auto-fill?`;
 
   });
 });
+
 
