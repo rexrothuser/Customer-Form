@@ -21,12 +21,16 @@
     .other-input { display: none; }
     .other-input.show { display: flex; align-items: center; gap: 8px; min-height: 34px; }
 
-    /* inline row layout for parking + brake requirements */
-    .inline-row { display:flex; gap:12px; align-items:flex-start; width:100%; }
-    .inline-item { flex:1; display:flex; flex-direction:column; gap:6px; }
-    .inline-item label { font-size:13px; font-weight:600; color:#123; }
-    .inline-item .control input,
-    .inline-item .control select { width:100%; }
+    /* field grid */
+    .fieldset-grid { display: grid; grid-template-columns: 42% 1fr; gap: 8px 12px; align-items: center; }
+
+    .field { display: contents; } /* children align to grid columns via label/control elements */
+
+    .field > label { grid-column: 1 / 2; align-self: center; margin: 6px 0; font-weight:600; color:#123; }
+    .field > .control { grid-column: 2 / 3; }
+
+    /* For full-width items (legends or blocks spanning both columns) */
+    .full-row > label, .full-row > .control { grid-column: 1 / -1; }
 
     /* Two-column arrangement for duty cycle + additional info (left labels / right controls) */
     .two-col { display:flex; gap:12px; width:100%; align-items:flex-start; }
@@ -103,9 +107,7 @@
 
     /* small responsive */
     @media (max-width:900px){
-      .other-input{flex-direction:column;align-items:flex-start}
-      .other-input label{width:100%;margin-bottom:6px}
-      .inline-row { flex-direction: column; }
+      .fieldset-grid { grid-template-columns: 1fr; }
       .two-col { flex-direction:column; }
       .two-col .two-left { width:100%; }
     }
@@ -125,7 +127,6 @@
       <fieldset>
         <legend>Application & Customer Information</legend>
         <div class="fieldset-grid">
-          <!-- Application type select (includes Other). ID preserved. -->
           <div class="field">
             <label for="applicationType">Application type</label>
             <div class="control">
@@ -140,30 +141,29 @@
             </div>
           </div>
 
-          <!-- Separate text input shown only when Other selected (same row) -->
           <div class="field other-input" id="applicationTypeOtherWrap" aria-hidden="true">
             <label for="applicationTypeOther">If Other, specify</label>
-            <div class="control">
-              <input id="applicationTypeOther" name="applicationTypeOther" type="text" placeholder="Type application type">
-            </div>
+            <div class="control"><input id="applicationTypeOther" name="applicationTypeOther" type="text" placeholder="Type application type"></div>
           </div>
 
           <div class="field"><label for="customer">Customer (company)</label><div class="control"><input id="customer" name="customer" type="text" required></div></div>
 
-          <!-- Date removed as requested -->
-
           <div class="field"><label for="machineType">Machine type</label><div class="control"><input id="machineType" name="machineType" type="text" required></div></div>
 
           <div class="field"><label for="machineName">Machine name</label><div class="control"><input id="machineName" name="machineName" type="text" required></div></div>
+
           <div class="field"><label for="customerContact">Customer contact</label><div class="control"><input id="customerContact" name="customerContact" type="text" placeholder="Email address" required></div></div>
 
           <div class="field"><label for="rexrothContact">Rexroth contact</label><div class="control"><input id="rexrothContact" name="rexrothContact" type="text" placeholder="Email address" required></div></div>
+
           <div class="field"><label for="provisionalMotorSelection">Provisional motor selection</label><div class="control"><input id="provisionalMotorSelection" name="provisionalMotorSelection" type="text" placeholder="Motor code/details" required></div></div>
 
           <div class="field"><label for="annualMotorQuantity">Annual motor quantity</label><div class="control"><input id="annualMotorQuantity" name="annualMotorQuantity" type="number" min="1" required></div></div>
+
           <div class="field"><label for="countryStandards">Country specific standards & regulations</label><div class="control"><input id="countryStandards" name="countryStandards" type="text" required></div></div>
 
           <div class="field"><label for="productionStartDate">Estimated production start date</label><div class="control"><input id="productionStartDate" name="productionStartDate" type="date" required></div></div>
+
           <div class="field"><label for="specialEnvironmentalConditions">Any special environmental considerations?</label><div class="control"><input id="specialEnvironmentalConditions" name="specialEnvironmentalConditions" type="text" required></div></div>
         </div>
       </fieldset>
@@ -177,7 +177,6 @@
           <div class="field"><label for="machineWeightMax">Total machine weight (max)</label><div class="control"><input id="machineWeightMax" name="machineWeightMax" type="number" required></div></div>
           <div class="field"><label for="machineWeightMin">Total machine weight (min)</label><div class="control"><input id="machineWeightMin" name="machineWeightMin" type="number" required></div></div>
 
-          <!-- Relief and Charge next to each other -->
           <div class="field"><label for="reliefPressure">Relief Pressure (bar)</label><div class="control"><input id="reliefPressure" name="reliefPressure" type="number" required></div></div>
           <div class="field"><label for="chargePressure">Charge Pressure (bar)</label><div class="control"><input id="chargePressure" name="chargePressure" type="number" required></div></div>
 
@@ -185,27 +184,23 @@
           <div class="field"><label for="tractiveEffort">Maximum tractive effort required</label><div class="control"><input id="tractiveEffort" name="tractiveEffort" type="text" required></div></div>
 
           <div class="field"><label for="maxSpeedFull">Max. Speed (Full displacement)</label><div class="control"><input id="maxSpeedFull" name="maxSpeedFull" type="number" required></div></div>
-          <div class="field"><label for="maxSpeedReduced">Max. Speed (Reduced displacement)</label><div class="control"><input id="maxSpeedReduced" name="maxSpeedReduced" type="number" required></div></div>
+          <div class="field"><label for="maxSpeedReduced">Max. Speed (Reduced displacement)</label><div class="control"><input id="maxSpeedReduced" name="maxSpeedReduced" type="number"></div></div>
 
-          <!-- Yes/No dropdowns for binary choices -->
-          <div class="field"><label for="flushingRequired">Is flushing required?</label><div class="control"><select id="flushingRequired" name="flushingRequired" required><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
-
+          <div class="field"><label for="flushingRequired">Is flushing required?</label><div class="control"><select id="flushingRequired" name="flushingRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
           <div class="field"><label for="flushingRate">Flushing rate / info</label><div class="control"><input id="flushingRate" name="flushingRate" type="text"></div></div>
 
           <div class="field"><label for="fluidManufacturer">Fluid manufacturer and name</label><div class="control"><input id="fluidManufacturer" name="fluidManufacturer" type="text"></div></div>
           <div class="field"><label for="fluidSpecification">Fluid specification / viscosity grade</label><div class="control"><input id="fluidSpecification" name="fluidSpecification" type="text"></div></div>
 
           <div class="field"><label for="fluidTemperature">Fluid max temperature (°C)</label><div class="control"><input id="fluidTemperature" name="fluidTemperature" type="number"></div></div>
-          <div class="field"><label for="paintRequired">Paint required?</label><div class="control"><select id="paintRequired" name="paintRequired" required><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
+          <div class="field"><label for="paintRequired">Paint required?</label><div class="control"><select id="paintRequired" name="paintRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
 
-          <div class="field"><label for="speedSensorRequired">Is a speed sensor required?</label><div class="control"><select id="speedSensorRequired" name="speedSensorRequired" required><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
+          <div class="field"><label for="speedSensorRequired">Is a speed sensor required?</label><div class="control"><select id="speedSensorRequired" name="speedSensorRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
           <div class="field"><label for="sensorPowerSupply">Speed sensor power / details</label><div class="control"><input id="sensorPowerSupply" name="sensorPowerSupply" type="text"></div></div>
 
           <div class="field"><label for="wheelRollerDiameter">Wheel / Roller diameter (mm)</label><div class="control"><input id="wheelRollerDiameter" name="wheelRollerDiameter" type="text"></div></div>
-
           <div class="field"><label for="wheelLoadOffset">Wheel load offset (x) (mm)</label><div class="control"><input id="wheelLoadOffset" name="wheelLoadOffset" type="text"></div></div>
 
-          <!-- Illustration -->
           <div class="field" style="align-items:flex-start;gap:12px">
             <label>Wheel offset illustration</label>
             <div class="control illustration">
@@ -213,46 +208,33 @@
             </div>
           </div>
 
-          <!-- parking + brake requirements side by side -->
-          <div class="field" style="grid-column: 1 / -1;">
-            <div class="inline-row">
-              <div class="inline-item">
-                <label for="parkingBrakeRequired">Is a parking brake required?</label>
-                <div class="control">
-                  <select id="parkingBrakeRequired" name="parkingBrakeRequired" required>
-                    <option value="">— Select —</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                  </select>
-                </div>
-              </div>
+          <!-- parking & brake as two normal fields (aligned like the rest) -->
+          <div class="field"><label for="parkingBrakeRequired">Is a parking brake required?</label><div class="control"><select id="parkingBrakeRequired" name="parkingBrakeRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
+          <div class="field"><label for="brakeRequirements">Brake requirements</label><div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text"></div></div>
 
-              <div class="inline-item">
-                <label for="brakeRequirements">Brake requirements</label>
-                <div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text"></div>
-              </div>
-            </div>
-          </div>
+          <!-- Machine duty cycle -->
+          <div class="field"><label for="machineDutyCycle">Machine duty cycle</label><div class="control"><input id="machineDutyCycle" name="machineDutyCycle" type="hidden"><div style="display:flex;gap:8px;align-items:center"><button type="button" id="editDutyCycleBtn">Edit duty cycle</button><div id="machineDutyCycleSummary">No duty cycle defined.</div></div></div></div>
 
-          <!-- Machine duty cycle (labels on left, controls on right) and Additional information aligned with right -->
-          <div class="field" style="grid-column: 1 / -1;">
-            <div class="two-col">
-              <div class="two-left">
-                <label>Machine duty cycle</label>
-                <label style="margin-top:6px;">Additional information (notes, photos, attachments)</label>
-              </div>
-              <div class="two-right">
-                <div style="display:flex;gap:8px;align-items:center">
-                  <button type="button" id="editDutyCycleBtn">Edit duty cycle</button>
-                  <div id="machineDutyCycleSummary" aria-live="polite">No duty cycle defined.</div>
-                </div>
+          <!-- Additional machine installation fields required by you (inserted after duty cycle) -->
+          <div class="field"><label for="numberOfMotorsPerMachine">No of motors per machine</label><div class="control"><input id="numberOfMotorsPerMachine" name="numberOfMotorsPerMachine" type="number" min="1"></div></div>
 
-                <textarea id="additionalInformation" name="additionalInformation" rows="5" placeholder="Add any notes here..." style="margin-top:6px;"></textarea>
+          <div class="field"><label for="wheelStudsRequired">Are wheel studs required?</label><div class="control"><select id="wheelStudsRequired" name="wheelStudsRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
 
-                <div style="margin-top:6px;font-size:13px;color:#666;">
-                  Attach files (optional): <input id="attachmentsInput" type="file" name="attachments" multiple accept="image/*,application/pdf" />
-                  <div style="font-size:12px;color:#999;margin-top:4px;">Tip: small images can be embedded in the submission. For larger files, please email these directly to Glenrothes sales team.</div>
-                </div>
+          <div class="field"><label for="desiredWheelInstallationPCD">Desired PCD wheel installation</label><div class="control"><input id="desiredWheelInstallationPCD" name="desiredWheelInstallationPCD" type="text"></div></div>
+          <div class="field"><label for="desiredWheelInstallationHolePattern">Desired hole/stud pattern in wheel installation</label><div class="control"><input id="desiredWheelInstallationHolePattern" name="desiredWheelInstallationHolePattern" type="text"></div></div>
+
+          <div class="field"><label for="desiredMotorInstallationPCD">Desired PCD in motor installation</label><div class="control"><input id="desiredMotorInstallationPCD" name="desiredMotorInstallationPCD" type="text"></div></div>
+          <div class="field"><label for="desiredMotorInstallationHolePattern">Desired hole pattern in motor installation</label><div class="control"><input id="desiredMotorInstallationHolePattern" name="desiredMotorInstallationHolePattern" type="text"></div></div>
+
+          <div class="field"><label for="desiredPortType">Desired port type</label><div class="control"><input id="desiredPortType" name="desiredPortType" type="text"></div></div>
+
+          <!-- Additional information & attachments (full-width) -->
+          <div class="field full-row"><label for="additionalInformation">Additional information (notes, photos, attachments)</label>
+            <div class="control">
+              <textarea id="additionalInformation" name="additionalInformation" rows="5" placeholder="Add any notes here..."></textarea>
+              <div style="margin-top:6px;font-size:13px;color:#666;">
+                Attach files (optional): <input id="attachmentsInput" type="file" name="attachments" multiple accept="image/*,application/pdf" />
+                <div style="font-size:12px;color:#999;margin-top:4px;">Tip: small images can be embedded in the submission. For larger files, use external upload and include URLs.</div>
               </div>
             </div>
           </div>
@@ -314,7 +296,3 @@
   </div>
 </body>
 </html>
-
-
-
-
