@@ -221,8 +221,8 @@ button:disabled { opacity:0.6; cursor:not-allowed; }
       <div class="field"><label for="drainPressure">Case/Drain pressure (bar)</label><div class="control"><input id="drainPressure" name="drainPressure" type="number"></div></div>
       <div class="field"><label for="tractiveEffort">*Maximum tractive effort required</label><div class="control"><input id="tractiveEffort" name="tractiveEffort" type="text" placeholder="Maximum gradient% or peak torque required" required></div></div>
 
-      <div class="field"><label for="maxSpeedFull">*Max. Speed (Full displacement)</label><div class="control"><input id="maxSpeedFull" name="maxSpeedFull" type="number" required></div></div>
-      <div class="field"><label for="maxSpeedReduced">Max. Speed (Reduced displacement)</label><div class="control"><input id="maxSpeedReduced" name="maxSpeedReduced" type="number"></div></div>
+      <div class="field"><label for="maxSpeedFull">*Max. Speed (Full displacement)</label><div class="control"><input id="maxSpeedFull" name="maxSpeedFull" type="number" placeholder="Measurement in RPM or km/h" required></div></div>
+      <div class="field"><label for="maxSpeedReduced">Max. Speed (Reduced displacement)</label><div class="control"><input id="maxSpeedReduced" name="maxSpeedReduced" type="number" placeholder="Measurement in RPM or km/h"></div></div>
 
       <div class="field"><label for="flushingRequired">*Is flushing required?</label><div class="control"><select id="flushingRequired" name="flushingRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
       <div class="field"><label for="flushingRate">Flushing rate / info</label><div class="control"><input id="flushingRate" name="flushingRate" type="text"></div></div>
@@ -338,6 +338,7 @@ button:disabled { opacity:0.6; cursor:not-allowed; }
 
 
 </div> </body> </html> 
+
 
 
 
