@@ -209,17 +209,17 @@ button:disabled { opacity:0.6; cursor:not-allowed; }
   <fieldset>
     <legend>Machine Details & Motor Features</legend>
     <div class="fieldset-grid">
-      <div class="field"><label for="annualUsage">Expected annual usage</label><div class="control"><input id="annualUsage" name="annualUsage" type="number"></div></div>
+      <div class="field"><label for="annualUsage">Expected annual usage</label><div class="control"><input id="annualUsage" name="annualUsage" type="text"></div></div>
       <div class="field"><label for="hydraulicSystemType">Hydraulic system type</label><div class="control"><input id="hydraulicSystemType" name="hydraulicSystemType" type="text"></div></div>
 
-      <div class="field"><label for="machineWeightMax">*Total machine weight (max)</label><div class="control"><input id="machineWeightMax" name="machineWeightMax" type="number" required></div></div>
-      <div class="field"><label for="machineWeightMin">*Total machine weight (min)</label><div class="control"><input id="machineWeightMin" name="machineWeightMin" type="number" required></div></div>
+      <div class="field"><label for="machineWeightMax">*Maximum total machine weight (kg)</label><div class="control"><input id="machineWeightMax" name="machineWeightMax" type="number" required></div></div>
+      <div class="field"><label for="machineWeightMin">*Minimum total machine weight (kg)</label><div class="control"><input id="machineWeightMin" name="machineWeightMin" type="number" required></div></div>
 
       <div class="field"><label for="reliefPressure">*Relief Pressure (bar)</label><div class="control"><input id="reliefPressure" name="reliefPressure" type="number" required></div></div>
       <div class="field"><label for="chargePressure">Charge Pressure (bar)</label><div class="control"><input id="chargePressure" name="chargePressure" type="number"></div></div>
 
       <div class="field"><label for="drainPressure">Case/Drain pressure (bar)</label><div class="control"><input id="drainPressure" name="drainPressure" type="number"></div></div>
-      <div class="field"><label for="tractiveEffort">*Maximum tractive effort required</label><div class="control"><input id="tractiveEffort" name="tractiveEffort" type="text" required></div></div>
+      <div class="field"><label for="tractiveEffort">*Maximum tractive effort required</label><div class="control"><input id="tractiveEffort" name="tractiveEffort" type="text" placeholder="Either maximum gradient% of operation or peak tractive force required" required></div></div>
 
       <div class="field"><label for="maxSpeedFull">*Max. Speed (Full displacement)</label><div class="control"><input id="maxSpeedFull" name="maxSpeedFull" type="number" required></div></div>
       <div class="field"><label for="maxSpeedReduced">Max. Speed (Reduced displacement)</label><div class="control"><input id="maxSpeedReduced" name="maxSpeedReduced" type="number"></div></div>
@@ -233,7 +233,7 @@ button:disabled { opacity:0.6; cursor:not-allowed; }
       <div class="field"><label for="fluidTemperature">Fluid max temperature (°C)</label><div class="control"><input id="fluidTemperature" name="fluidTemperature" type="number"></div></div>
       <div class="field"><label for="paintRequired">Paint required?</label><div class="control"><select id="paintRequired" name="paintRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
 
-      <div class="field"><label for="speedSensorRequired">Is a speed sensor required?</label><div class="control"><select id="speedSensorRequired" name="speedSensorRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
+      <div class="field"><label for="speedSensorRequired">*Is a speed sensor required?</label><div class="control"><select id="speedSensorRequired" name="speedSensorRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
       <div class="field"><label for="sensorPowerSupply">Speed sensor power / details</label><div class="control"><input id="sensorPowerSupply" name="sensorPowerSupply" type="text"></div></div>
 
       <div class="field"><label for="wheelRollerDiameter">*Wheel / Roller diameter (mm)</label><div class="control"><input id="wheelRollerDiameter" name="wheelRollerDiameter" type="text" required></div></div>
@@ -252,7 +252,7 @@ button:disabled { opacity:0.6; cursor:not-allowed; }
       <div class="field"><label for="brakeRequirements">Brake requirements</label><div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text"></div></div>
 
       <!-- Machine duty cycle -->
-      <div class="field"><label for="machineDutyCycle">Machine duty cycle</label><div class="control"><input id="machineDutyCycle" name="machineDutyCycle" type="hidden"><div style="display:flex;gap:8px;align-items:center"><button type="button" id="editDutyCycleBtn">Edit duty cycle</button><div id="machineDutyCycleSummary">No duty cycle defined.</div></div></div></div>
+      <div class="field"><label for="machineDutyCycle">*Machine duty cycle</label><div class="control"><input id="machineDutyCycle" name="machineDutyCycle" type="hidden"><div style="display:flex;gap:8px;align-items:center"><button type="button" id="editDutyCycleBtn">Edit duty cycle</button><div id="machineDutyCycleSummary">No duty cycle defined.</div></div></div></div>
 
       <!-- Additional machine installation fields required by you (inserted after duty cycle) -->
       <div class="field"><label for="numberOfMotorsPerMachine">No of motors per machine</label><div class="control"><input id="numberOfMotorsPerMachine" name="numberOfMotorsPerMachine" type="number" min="1"></div></div>
@@ -338,6 +338,7 @@ button:disabled { opacity:0.6; cursor:not-allowed; }
 
 
 </div> </body> </html> 
+
 
 
 
