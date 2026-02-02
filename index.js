@@ -1,4 +1,4 @@
-// index.js (fixed: single confirm message, safe binding, radial scaling, temperature template)
+// index.js (radial scaling fix: only use minBaseRadial when min weight provided; enforce floor)
 document.addEventListener('DOMContentLoaded', function () {
   console.log('index.js loaded');
 
@@ -36,20 +36,20 @@ document.addEventListener('DOMContentLoaded', function () {
   const machineDutyCycleSummary = document.getElementById('machineDutyCycleSummary');
 
   // Compact wheel loader template (8 steps) — temperatures per your request
-  const baseSpeed = 105; // fallback RPM if conversion fails
+  const baseSpeed = 105; // fallback / baseline RPM for compact template
   const compactWheelLoaderTemplate = [
     { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },   // 1
     { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },   // 2
     { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 },// 3
     { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 },// 4
     { speedBase: 60, diff: 100, oil: 65, duration: 20, offset: 0 },  // 5
-    { speedBase: 80, diff: 75,  oil: 60, duration: 20, offset: 0 },  // 6 (60)
-    { speedBase: 105,diff: 55,  oil: 65, duration: 20, offset: 0 },  // 7 (65)
-    { speedBase: 10, diff: 400, oil: 80, duration: 3.5, offset: 0 }  // 8 (80)
+    { speedBase: 80, diff: 75,  oil: 60, duration: 20, offset: 0 },  // 6
+    { speedBase: 105,diff: 55,  oil: 65, duration: 20, offset: 0 },  // 7
+    { speedBase: 10, diff: 400, oil: 80, duration: 3.5, offset: 0 }  // 8
   ];
 
   const defaultBaseRadial = 6750;
-  // radialScale factors for steps 3..7 (change these as you require)
+  // radialScale factors for steps 3..7 (tweakable)
   const radialScale = { 3: 0.80, 4: 0.80, 5: 0.60, 6: 0.52, 7: 0.45 };
 
   function convertSpeedToRPM(inputValue, wheelDiameterMm = 750) {
@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return Math.round(v);
   }
 
+  // compute base radial from weight (kg). Returns defaultBaseRadial if kg invalid.
   function computeBaseRadialFromWeightKg(kg) {
     if (!kg || Number(kg) <= 0) return defaultBaseRadial;
     const g = 9.81;
@@ -80,16 +81,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const wheelDiameter = Number(wheelDiameterInput) > 0 ? Number(wheelDiameterInput) : 750;
     const reducedProvided = Number(reducedSpeedInput) && Number(reducedSpeedInput) > 0;
 
+    // determine max speed rpm from inputs (reduced preferred)
     let maxSpeedRPM = 0;
     if (reducedProvided) maxSpeedRPM = convertSpeedToRPM(reducedSpeedInput, wheelDiameter);
     else maxSpeedRPM = convertSpeedToRPM(fullSpeedInput, wheelDiameter);
     if (!maxSpeedRPM) maxSpeedRPM = baseSpeed;
 
-    // compute radials
-    const baseRadial = computeBaseRadialFromWeightKg(maxWeightKg);
-    const minBaseRadial = computeBaseRadialFromWeightKg(minWeightKg);
+    // if template is compactWheelLoaderTemplate and you want to cap to baseline, uncomment:
+    // if (template === compactWheelLoaderTemplate) maxSpeedRPM = Math.min(maxSpeedRPM, baseSpeed);
 
-    // axial unchanged
+    console.log('maxSpeedRPM used =', maxSpeedRPM, 'reducedProvided=', reducedProvided, 'wheelDiameter=', wheelDiameter);
+
+    // compute baseRadial from MAX weight (always used)
+    const baseRadial = computeBaseRadialFromWeightKg(maxWeightKg);
+
+    // compute minBaseRadial only if a valid minimum weight was provided (>0).
+    const minBaseRadial = (minWeightKg && Number(minWeightKg) > 0) ? computeBaseRadialFromWeightKg(minWeightKg) : null;
+
+    console.log('baseRadial N =', Math.round(baseRadial), 'minBaseRadial N =', (minBaseRadial !== null ? Math.round(minBaseRadial) : '(none)'));
+
+    // axial calculations (unchanged)
     const step1Axial = Math.round(0.30 * baseRadial);
     const step2Axial = Math.round(-0.30 * baseRadial);
     const step3Axial = Math.round(0.75 * step1Axial);
@@ -117,14 +128,27 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (col === 'duration') {
           input.value = (stepTemplate.duration !== null && stepTemplate.duration !== undefined) ? String(stepTemplate.duration) : '';
         } else if (col === 'radial') {
+          // compute radial per row
           let radialVal = '';
+
           if ([1,2,8].includes(row)) {
+            // steps 1,2,8 use the base radial (from max weight)
             radialVal = Math.round(baseRadial);
           } else if ([3,4,5,6,7].includes(row)) {
+            // scaled steps
             const factor = radialScale[row] !== undefined ? Number(radialScale[row]) : 1;
             radialVal = Math.round(baseRadial * factor);
-            if ([5,6,7].includes(row) && minBaseRadial && radialVal < Math.round(minBaseRadial)) radialVal = Math.round(minBaseRadial);
-          } else radialVal = '';
+          } else {
+            radialVal = '';
+          }
+
+          // If a minimum-weight-derived radial exists, enforce it as a floor for ALL steps
+          // so radial never drops below the per-motor radial computed from min machine weight.
+          if (minBaseRadial !== null && radialVal !== '' && !isNaN(radialVal)) {
+            const minRounded = Math.round(minBaseRadial);
+            if (radialVal < minRounded) radialVal = minRounded;
+          }
+
           input.value = (radialVal !== '' && !isNaN(radialVal)) ? String(radialVal) : '';
         } else if (col === 'axial') {
           let axialVal = '';
@@ -247,7 +271,7 @@ Proceed to auto-fill?`;
     closeDutyModal();
   });
 
-  // --- Remaining helpers (file read, reCAPTCHA, doPost, form submit) ---
+  // The remaining helpers (file read, reCAPTCHA, doPost, form submit) are unchanged...
   function readFilesAsDataURLs(fileInput) {
     const files = fileInput && fileInput.files;
     if (!files || files.length === 0) return Promise.resolve([]);
@@ -419,4 +443,3 @@ Proceed to auto-fill?`;
 
   });
 });
-
