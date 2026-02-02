@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const machineDutyCycleSummary = document.getElementById('machineDutyCycleSummary');
 
   // Compact wheel loader template (8 steps) — temperatures per your request
-  const baseSpeed = 500; // fallback RPM if conversion fails
+  const baseSpeed = 105; // fallback RPM if conversion fails
   const compactWheelLoaderTemplate = [
     { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },   // 1
     { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },   // 2
@@ -419,3 +419,4 @@ Proceed to auto-fill?`;
 
   });
 });
+
