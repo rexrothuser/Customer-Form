@@ -1,4 +1,4 @@
-// index.js (full — updated to include new installation fields and previous rules)
+// index.js (updated: single confirm, radial scaling from max weight, temp template adjusted)
 document.addEventListener('DOMContentLoaded', function () {
   console.log('index.js loaded');
 
@@ -35,20 +35,21 @@ document.addEventListener('DOMContentLoaded', function () {
   const machineDutyCycleInput = document.getElementById('machineDutyCycle');
   const machineDutyCycleSummary = document.getElementById('machineDutyCycleSummary');
 
-  // Compact wheel loader template (8 steps)
+  // Compact wheel loader template (8 steps) — updated oil (temperature) values per request
   const baseSpeed = 500;
   const compactWheelLoaderTemplate = [
-    { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },
-    { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },
-    { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 },
-    { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 },
-    { speedBase: 60, diff: 100, oil: 65, duration: 20, offset: 0 },
-    { speedBase: 80, diff: 75,  oil: 60, duration: 20, offset: 0 },
-    { speedBase: 105,diff: 55,  oil: 60, duration: 20, offset: 0 },
-    { speedBase: 10, diff: 400, oil: 80, duration: 3.5, offset: 0 }
+    { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },  // step 1
+    { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },  // step 2
+    { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 }, // step 3
+    { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 }, // step 4
+    { speedBase: 60, diff: 100, oil: 65, duration: 20, offset: 0 },   // step 5
+    { speedBase: 80, diff: 75,  oil: 60, duration: 20, offset: 0 },   // step 6 (60)
+    { speedBase: 105,diff: 55,  oil: 60, duration: 20, offset: 0 },   // step 7 (65)
+    { speedBase: 10, diff: 400, oil: 80, duration: 3.5, offset: 0 }   // step 8 (80)
   ];
 
   const defaultBaseRadial = 6750;
+  // radialScale factors for steps 3..7 - you said you'll supply exact values later; these are the existing placeholders
   const radialScale = { 3: 0.80, 4: 0.80, 5: 0.60, 6: 0.52, 7: 0.45 };
 
   function convertSpeedToRPM(inputValue, wheelDiameterMm = 750) {
@@ -64,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return Math.round(v);
   }
 
+  // base radial force computed from weight (kg) per your formula: (kg * 9.81) / 4
   function computeBaseRadialFromWeightKg(kg) {
     if (!kg || Number(kg) <= 0) return defaultBaseRadial;
     const g = 9.81;
@@ -81,16 +83,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     console.log('maxSpeedRPM used =', maxSpeedRPM, 'reducedProvided=', reducedProvided, 'wheelDiameter=', wheelDiameter);
 
+    // IMPORTANT: use maximum machine weight to compute the base radial per your requirement
     const baseRadial = computeBaseRadialFromWeightKg(maxWeightKg);
     const minBaseRadial = computeBaseRadialFromWeightKg(minWeightKg);
 
     console.log('baseRadial N =', Math.round(baseRadial), 'minBaseRadial N =', Math.round(minBaseRadial));
 
+    // axial calculations left unchanged (per your instruction)
     const step1Axial = Math.round(0.30 * baseRadial);
     const step2Axial = Math.round(-0.30 * baseRadial);
     const step3Axial = Math.round(0.75 * step1Axial);
     const step4Axial = Math.round(0.75 * step2Axial);
 
+    // speed distribution across steps (unchanged)
     const speedPercents = { 1:0.10, 2:0.10, 3:0.25, 4:0.25, 5:0.60, 6:0.80, 7:1.00, 8:0.10 };
 
     for (let row = 1; row <= 10; row++) {
@@ -109,13 +114,19 @@ document.addEventListener('DOMContentLoaded', function () {
           if (reducedProvided && [5,6,7].includes(row) && dp !== '') dp = dp * 2;
           input.value = (dp !== '' && !isNaN(dp)) ? String(Math.round(dp)) : '';
         } else if (col === 'oil') {
+          // temperature as provided by template
           input.value = (stepTemplate.oil !== null && stepTemplate.oil !== undefined) ? String(stepTemplate.oil) : '';
         } else if (col === 'duration') {
           input.value = (stepTemplate.duration !== null && stepTemplate.duration !== undefined) ? String(stepTemplate.duration) : '';
         } else if (col === 'radial') {
+          // radial scaling:
+          // - steps 1,2,8 = baseRadial (from max machine weight)
+          // - steps 3..7 = baseRadial * radialScale[row] (factors kept in radialScale)
+          // - for steps 5..7 ensure radial >= minBaseRadial (from min machine weight) if provided
           let radialVal = '';
-          if ([1,2,8].includes(row)) radialVal = Math.round(baseRadial);
-          else if ([3,4,5,6,7].includes(row)) {
+          if ([1,2,8].includes(row)) {
+            radialVal = Math.round(baseRadial);
+          } else if ([3,4,5,6,7].includes(row)) {
             const factor = radialScale[row] !== undefined ? Number(radialScale[row]) : 1;
             radialVal = Math.round(baseRadial * factor);
             if ([5,6,7].includes(row) && minBaseRadial && radialVal < Math.round(minBaseRadial)) radialVal = Math.round(minBaseRadial);
@@ -159,9 +170,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const fullSpeed = Number(document.getElementById('maxSpeedFull')?.value) || 0;
         const reducedSpeed = Number(document.getElementById('maxSpeedReduced')?.value) || 0;
         const wheelDia = Number(document.getElementById('wheelRollerDiameter')?.value) || 750;
-        const message = 'Auto-fill duty cycle for Compact Wheel Loader using provided machine weights/speed. OK to auto-fill (you can edit after)?';
-        if (window.confirm(message)) applyTemplateToTable(compactWheelLoaderTemplate, weightMax, weightMin, fullSpeed, reducedSpeed, wheelDia);
-        else {
+
+        // single combined confirm (no duplicate) — shows what will be auto-filled
+        const message = 'Auto-fill duty cycle for Compact Wheel Loader using provided machine weights/speed.\\n' +
+                        `Max weight: ${weightMax || '(not set)'}, Min weight: ${weightMin || '(not set)'}\\n` +
+                        `Wheel diameter: ${wheelDia}, Max speed (full/reduced): ${fullSpeed}/${reducedSpeed || 'n/a'}\\n\\n` +
+                        'OK to auto-fill (you can edit after)?';
+
+        if (window.confirm(message)) {
+          applyTemplateToTable(compactWheelLoaderTemplate, weightMax, weightMin, fullSpeed, reducedSpeed, wheelDia);
+        } else {
           for (let r=1;r<=10;r++){
             ['speed','diff','oil','duration','radial','axial','offset'].forEach(col=>{
               const inp = dutyTable.querySelector(`input[data-row="${r}"][data-col="${col}"]`);
@@ -185,16 +203,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function closeDutyModal(){ dutyModalOverlay.classList.remove('show'); dutyModalOverlay.setAttribute('aria-hidden','true'); }
 
+  // Attach the button handler once. If direct binding fails or the button doesn't exist at binding time,
+  // fall back to delegated document click handler.
   if (editDutyCycleBtn) {
-    try { editDutyCycleBtn.addEventListener('click', openDutyModal); } catch(e){ console.warn('Direct binding failed', e); }
+    try {
+      editDutyCycleBtn.addEventListener('click', openDutyModal);
+    } catch (e) {
+      console.warn('Direct binding for editDutyCycleBtn failed, falling back to delegated click handler', e);
+      document.addEventListener('click', function(ev){
+        if (!ev.target) return;
+        if (ev.target.id==='editDutyCycleBtn' || (ev.target.closest && ev.target.closest('#editDutyCycleBtn'))) openDutyModal();
+      });
+    }
+  } else {
+    // no direct element available — use delegated listener
+    document.addEventListener('click', function(ev){
+      if (!ev.target) return;
+      if (ev.target.id==='editDutyCycleBtn' || (ev.target.closest && ev.target.closest('#editDutyCycleBtn'))) openDutyModal();
+    });
   }
-  document.addEventListener('click', function(ev){ if (!ev.target) return; if (ev.target.id==='editDutyCycleBtn' || (ev.target.closest && ev.target.closest('#editDutyCycleBtn'))) openDutyModal(); });
 
   if (dutyCancelBtn) dutyCancelBtn.addEventListener('click', closeDutyModal);
   if (dutyModalOverlay) dutyModalOverlay.addEventListener('click', function(e){ if (e.target === dutyModalOverlay) closeDutyModal(); });
 
   if (dutySaveBtn) dutySaveBtn.addEventListener('click', function(){
-    const out=[]; for (let r=1;r<=10;r++){ const rowObj={}; let any=false; ['speed','diff','oil','duration','radial','axial','offset'].forEach(col=>{ const inp = dutyTable.querySelector(`input[data-row="${r}"][data-col="${col}"]`); if (inp && inp.value.trim()!==''){ rowObj[col]=inp.value.trim(); any=true; } else rowObj[col]=''; }); if (any){ rowObj.stage=r; out.push(rowObj); } } machineDutyCycleInput.value = JSON.stringify(out); machineDutyCycleSummary.textContent = out.length ? `${out.length} stage(s) defined` : 'No duty cycle defined.'; closeDutyModal();
+    const out=[];
+    for (let r=1;r<=10;r++){
+      const rowObj={}; let any=false;
+      ['speed','diff','oil','duration','radial','axial','offset'].forEach(col=>{
+        const inp = dutyTable.querySelector(`input[data-row="${r}"][data-col="${col}"]`);
+        if (inp && inp.value.trim()!==''){ rowObj[col]=inp.value.trim(); any=true; } else rowObj[col]='';
+      });
+      if (any){ rowObj.stage=r; out.push(rowObj); }
+    }
+    machineDutyCycleInput.value = JSON.stringify(out);
+    machineDutyCycleSummary.textContent = out.length ? `${out.length} stage(s) defined` : 'No duty cycle defined.';
+    closeDutyModal();
   });
 
   function readFilesAsDataURLs(fileInput) { const files = fileInput?.files; if (!files || files.length===0) return Promise.resolve([]); const readers = Array.from(files).map(file=>new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res({name:file.name,type:file.type,dataUrl:(fr.result||'').toString()}); fr.onerror=()=>rej(new Error('File read error:'+file.name)); fr.readAsDataURL(file); })); return Promise.all(readers); }
@@ -299,4 +343,3 @@ document.addEventListener('DOMContentLoaded', function () {
 
   });
 });
-
