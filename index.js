@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
     { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 },// 4
     { speedBase: 60, diff: 100, oil: 65, duration: 20, offset: 0 },  // 5
     { speedBase: 80, diff: 75,  oil: 60, duration: 20, offset: 0 },  // 6
-    { speedBase: 105,diff: 55,  oil: 65, duration: 20, offset: 0 },  // 7
+    { speedBase: 105,diff: 55,  oil: 60, duration: 20, offset: 0 },  // 7
     { speedBase: 10, diff: 400, oil: 80, duration: 3.5, offset: 0 }  // 8
   ];
 
@@ -443,3 +443,4 @@ Proceed to auto-fill?`;
 
   });
 });
+
