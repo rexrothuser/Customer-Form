@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const machineDutyCycleSummary = document.getElementById('machineDutyCycleSummary');
 
   // Compact wheel loader template (8 steps) — updated oil (temperature) values per request
-  const baseSpeed = 500;
+  const baseSpeed = 105;
   const compactWheelLoaderTemplate = [
     { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },  // step 1
     { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },  // step 2
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
     { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 }, // step 4
     { speedBase: 60, diff: 100, oil: 65, duration: 20, offset: 0 },   // step 5
     { speedBase: 80, diff: 75,  oil: 60, duration: 20, offset: 0 },   // step 6 (60)
-    { speedBase: 105,diff: 55,  oil: 60, duration: 20, offset: 0 },   // step 7 (65)
+    { speedBase: 105,diff: 55,  oil: 60, duration: 20, offset: 0 },   // step 7 (60)
     { speedBase: 10, diff: 400, oil: 80, duration: 3.5, offset: 0 }   // step 8 (80)
   ];
 
@@ -343,3 +343,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
   });
 });
+
