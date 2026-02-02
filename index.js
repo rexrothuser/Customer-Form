@@ -172,10 +172,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const wheelDia = Number(document.getElementById('wheelRollerDiameter')?.value) || 750;
 
         // single combined confirm (no duplicate) — shows what will be auto-filled
-        const message = 'Auto-fill duty cycle for Compact Wheel Loader using provided machine weights/speed.\' +
-                        `Max weight: ${weightMax || '(not set)'}, Min weight: ${weightMin || '(not set)'}\` +
-                        `Wheel diameter: ${wheelDia}, Max speed (full/reduced): ${fullSpeed}/${reducedSpeed || 'n/a'}\\. ` +
-                        'This will be automatically filled, although can be altered afterwards if required. Automatically generated duty cycle is based on analysis conducted on previous machines in similar application.';
+        const message = `Auto-fill duty cycle for Compact Wheel Loader using provided machine weights / speed.
+        
+        Max weight: ${weightMax || '(not set)'}
+        Min weight: ${weightMin || '(not set)'}
+        Wheel diameter: ${wheelDia}
+        Max speed (full/reduced): ${fullSpeed}/${reducedSpeed || 'n/a'}
+        
+        This will automatically fill the duty cycle. You can edit any values afterwards if required.
+        Automatically generated duty cycle is based on analysis of previous machines in similar applications.
+        
+        Proceed to auto-fill?`;
 
         if (window.confirm(message)) {
           applyTemplateToTable(compactWheelLoaderTemplate, weightMax, weightMin, fullSpeed, reducedSpeed, wheelDia);
@@ -343,5 +350,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   });
 });
+
 
 
