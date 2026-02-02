@@ -38,14 +38,14 @@ document.addEventListener('DOMContentLoaded', function () {
   // Compact wheel loader template (8 steps)
   const baseSpeed = 500;
   const compactWheelLoaderTemplate = [
-    { speedBase: 10, diff: 200, oil: null, duration: 5, offset: 0 },
-    { speedBase: 10, diff: 200, oil: null, duration: 5, offset: 0 },
-    { speedBase: 25, diff: 150, oil: null, duration: 13.25, offset: 0 },
-    { speedBase: 25, diff: 150, oil: null, duration: 13.25, offset: 0 },
-    { speedBase: 60, diff: 100, oil: null, duration: 20, offset: 0 },
-    { speedBase: 80, diff: 75,  oil: null, duration: 20, offset: 0 },
-    { speedBase: 105,diff: 55,  oil: null, duration: 20, offset: 0 },
-    { speedBase: 10, diff: 400, oil: null, duration: 3.5, offset: 0 }
+    { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },
+    { speedBase: 10, diff: 200, oil: 70, duration: 5, offset: 0 },
+    { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 },
+    { speedBase: 25, diff: 150, oil: 65, duration: 13.25, offset: 0 },
+    { speedBase: 60, diff: 100, oil: 65, duration: 20, offset: 0 },
+    { speedBase: 80, diff: 75,  oil: 60, duration: 20, offset: 0 },
+    { speedBase: 105,diff: 55,  oil: 60, duration: 20, offset: 0 },
+    { speedBase: 10, diff: 400, oil: 80, duration: 3.5, offset: 0 }
   ];
 
   const defaultBaseRadial = 6750;
@@ -299,3 +299,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
   });
 });
+
