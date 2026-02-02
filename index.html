@@ -107,6 +107,7 @@ table.duty-table input[type="text"], table.duty-table input[type="number"]{
   display:inline-block;
   background: #fff;
   border-radius:4px;
+  max-width: 420px;
 }
 .illustration img { max-width:320px; width:100%; height:auto; display:block; }
 
@@ -133,9 +134,7 @@ select { appearance: none; -webkit-appearance: none; -moz-appearance: none; back
 button { padding:8px 12px; border-radius:4px; border:1px solid #bfc9ce; background:#f6f8f9; cursor:pointer; }
 button:disabled { opacity:0.6; cursor:not-allowed; }
 
-
-</style>
-</head> <body> <div class="container"> <header class="header-top"> <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Logo_of_Bosch_Rexroth_AG.svg/1280px-Logo_of_Bosch_Rexroth_AG.svg.png" alt="Logo"> <div class="title-wrap"> <h1 class="app-title">Application Information Sheet</h1> <p class="subtitle">Motor application — please complete all required fields</p> </div> </header>
+  
 
 <form id="motorForm" novalidate>
   <fieldset>
@@ -215,14 +214,15 @@ button:disabled { opacity:0.6; cursor:not-allowed; }
       <div class="field"><label for="wheelRollerDiameter">Wheel / Roller diameter (mm)</label><div class="control"><input id="wheelRollerDiameter" name="wheelRollerDiameter" type="text"></div></div>
       <div class="field"><label for="wheelLoadOffset">Wheel load offset (x) (mm)</label><div class="control"><input id="wheelLoadOffset" name="wheelLoadOffset" type="text"></div></div>
 
-      <div class="field" style="align-items:flex-start;gap:12px">
+      <!-- Make the illustration span both columns so subsequent fields align on the same row -->
+      <div class="field full-row">
         <label>Wheel offset illustration</label>
         <div class="control illustration">
           <img id="wheelOffsetImg" src="wheel_offset.png" alt="Wheel load offset diagram">
         </div>
       </div>
 
-      <!-- parking & brake as two normal fields (aligned like the rest) -->
+      <!-- parking & brake as two normal fields (now they will appear on the same row) -->
       <div class="field"><label for="parkingBrakeRequired">Is a parking brake required?</label><div class="control"><select id="parkingBrakeRequired" name="parkingBrakeRequired"><option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option></select></div></div>
       <div class="field"><label for="brakeRequirements">Brake requirements</label><div class="control"><input id="brakeRequirements" name="brakeRequirements" type="text"></div></div>
 
@@ -310,3 +310,4 @@ button:disabled { opacity:0.6; cursor:not-allowed; }
 
 
 </div> </body> </html> 
+
